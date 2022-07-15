@@ -17,6 +17,7 @@ public class DBHandler extends SQLiteOpenHelper {
 
     private static final String TABLE_Trip = "TT";
     private static final String TABLE_ExpCat = "TE";
+    private static final String TABLE_Exp = "TEx";
     private static final String TABLE_Day = "TD";
     private static final String TABLE_Hotel = "TH";
     private static final String TABLE_Travel = "TTr";
@@ -27,6 +28,16 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String TT_place = "TT_place";
     private static final String TT_img = "TT_img";
     private static final String TT_bg = "TT_bg";
+    private static final String TT_rate = "TT_rate";
+    private static final String TT_depDate = "TT_depDate";
+    private static final String TT_retDate = "TT_retDatee";
+    private static final String TT_nights = "TT_nights";
+    private static final String TT_exp = "TT_exp";
+    private static final String TT_hexp = "TT_hexp";
+    private static final String TT_dexp = "TT_dexp";
+    private static final String TT_isHome = "TT_isHome";
+    private static final String TT_hcur = "TT_hcur";
+    private static final String TT_dcur = "TT_dcur";
 
     // Table ExpCat - Columns
     private static final String TE_ID = "TE_id";
@@ -49,7 +60,17 @@ public class DBHandler extends SQLiteOpenHelper {
                 +TT_ID+" INTEGER PRIMARY KEY,"
                 +TT_place+" TEXT,"
                 +TT_img+" INTEGER,"
-                +TT_bg+" INTEGER"
+                +TT_bg+" INTEGER,"
+                +TT_rate+" REAL,"
+                +TT_depDate+" TEXT,"
+                +TT_retDate+" TEXT,"
+                +TT_nights+" INTEGER,"
+                +TT_exp +" REAL,"
+                +TT_hexp+" REAL,"
+                +TT_dexp+" REAL,"
+                +TT_isHome+" INTEGER,"
+                +TT_hcur+" TEXT,"
+                +TT_dcur+" TEXT"
                 +")";
         db.execSQL(CREATE_TT);
 
@@ -86,6 +107,16 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(TT_place, trip.place);
         values.put(TT_img, trip.imageId);
         values.put(TT_bg, trip.bg);
+        values.put(TT_rate, trip.rate);
+        values.put(TT_depDate, trip.depDate);
+        values.put(TT_retDate, trip.retDate);
+        values.put(TT_nights, trip.nights);
+        values.put(TT_exp, trip.exp);
+        values.put(TT_hexp, trip.Hexp);
+        values.put(TT_dexp, trip.Dexp);
+        values.put(TT_isHome, trip.isHom);
+        values.put(TT_hcur, trip.Hcur);
+        values.put(TT_dcur, trip.Dcur);
 
         db.insert(TABLE_Trip, null, values);
         db.close();
@@ -97,7 +128,8 @@ public class DBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         Cursor c = db.query(TABLE_Trip, new String[]{
-                TT_ID,TT_place,TT_img,TT_bg},
+                TT_ID,TT_place,TT_img,TT_bg,TT_rate,TT_depDate,TT_retDate,
+                TT_nights,TT_exp,TT_hexp,TT_dexp,TT_isHome,TT_hcur,TT_dcur},
                 TT_ID+"=?", new String[]{String.valueOf(id)},
                 null,null,null,null);
 
@@ -107,6 +139,18 @@ public class DBHandler extends SQLiteOpenHelper {
                 c.getInt(c.getColumnIndexOrThrow(TT_ID)),
                 c.getString(c.getColumnIndexOrThrow(TT_place)),
                 c.getInt(c.getColumnIndexOrThrow(TT_img)));
+
+        trip.bg = c.getInt(c.getColumnIndexOrThrow(TT_bg));
+        trip.rate = c.getFloat(c.getColumnIndexOrThrow(TT_rate));
+        trip.depDate = c.getString(c.getColumnIndexOrThrow(TT_depDate));
+        trip.retDate = c.getString(c.getColumnIndexOrThrow(TT_retDate));
+        trip.nights = c.getInt(c.getColumnIndexOrThrow(TT_nights));
+        trip.exp = c.getFloat(c.getColumnIndexOrThrow(TT_exp));
+        trip.Hexp = c.getFloat(c.getColumnIndexOrThrow(TT_hexp));
+        trip.Dexp = c.getFloat(c.getColumnIndexOrThrow(TT_dexp));
+        trip.isHom = c.getInt(c.getColumnIndexOrThrow(TT_isHome));
+        trip.Hcur = c.getString(c.getColumnIndexOrThrow(TT_hcur));
+        trip.Dcur = c.getString(c.getColumnIndexOrThrow(TT_dcur));
 
         return trip;
     }
@@ -125,6 +169,16 @@ public class DBHandler extends SQLiteOpenHelper {
                         c.getInt(c.getColumnIndexOrThrow(TT_ID)),
                         c.getString(c.getColumnIndexOrThrow(TT_place)),
                         c.getInt(c.getColumnIndexOrThrow(TT_img)));
+                trip.rate = c.getFloat(c.getColumnIndexOrThrow(TT_rate));
+                trip.depDate = c.getString(c.getColumnIndexOrThrow(TT_depDate));
+                trip.retDate = c.getString(c.getColumnIndexOrThrow(TT_retDate));
+                trip.nights = c.getInt(c.getColumnIndexOrThrow(TT_nights));
+                trip.exp = c.getFloat(c.getColumnIndexOrThrow(TT_exp));
+                trip.Hexp = c.getFloat(c.getColumnIndexOrThrow(TT_hexp));
+                trip.Dexp = c.getFloat(c.getColumnIndexOrThrow(TT_dexp));
+                trip.isHom = c.getInt(c.getColumnIndexOrThrow(TT_isHome));
+                trip.Hcur = c.getString(c.getColumnIndexOrThrow(TT_hcur));
+                trip.Dcur = c.getString(c.getColumnIndexOrThrow(TT_dcur));
                 tripList.add(trip);
             } while (c.moveToNext());
         }
@@ -149,6 +203,16 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(TT_place, trip.place);
         values.put(TT_img, trip.imageId);
         values.put(TT_bg, trip.bg);
+        values.put(TT_rate, trip.rate);
+        values.put(TT_depDate, trip.depDate);
+        values.put(TT_retDate, trip.retDate);
+        values.put(TT_nights, trip.nights);
+        values.put(TT_exp, trip.exp);
+        values.put(TT_hexp, trip.Hexp);
+        values.put(TT_dexp, trip.Dexp);
+        values.put(TT_isHome, trip.isHom);
+        values.put(TT_hcur, trip.Hcur);
+        values.put(TT_dcur, trip.Dcur);
 
         return db.update(TABLE_Trip,values,TT_ID+"=?",new String[]{String.valueOf(trip.srno)});
     }
@@ -156,6 +220,12 @@ public class DBHandler extends SQLiteOpenHelper {
     public void deleteTrip(Trip trip){
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_Trip, TT_ID+"=?",new String[]{String.valueOf(trip.srno)});
+        db.close();
+    }
+
+    public void deleteTrip(int srno){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_Trip, TT_ID+"=?",new String[]{String.valueOf(srno)});
         db.close();
     }
 
@@ -295,5 +365,10 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
 
+    /*
+    =============================================================================
+    Table Exp
+    =============================================================================
+     */
 
 }

@@ -3,6 +3,7 @@ package com.mitulagr.tripplanner;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,11 +24,19 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -79,6 +89,10 @@ public class TripHomeFragment extends Fragment {
     private TextView hotelHelp, travelHelp;
     private ImageButton modifyTrip, deleteTrip;
     private Button backToTrips, addHotel, addTravel;
+    private TextView bPlace, bNights, bFromTo, bCur, bExp;
+    private int id;
+    private DBHandler db;
+    private Trip trip;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -98,6 +112,14 @@ public class TripHomeFragment extends Fragment {
         travels = (RecyclerView) rootView.findViewById(R.id.travels);
         travelHelp = (TextView) rootView.findViewById(R.id.TravelHelp);
 
+        bPlace = (TextView) rootView.findViewById(R.id.tripplacename);
+        bNights = (TextView) rootView.findViewById(R.id.textView22);
+        bFromTo = (TextView) rootView.findViewById(R.id.textView17);
+        bCur = (TextView) rootView.findViewById(R.id.textView39);
+        bExp = (TextView) rootView.findViewById(R.id.textView21);
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+        id = sp.getInt("Current Trip", 0);
 
         /*
         =============================================================================
@@ -105,12 +127,29 @@ public class TripHomeFragment extends Fragment {
         =============================================================================
          */
 
-        // TODO: Round Expense if float
+        db = new DBHandler(getContext());
+        trip = db.getTrip(id);
+
+        bPlace.setText(trip.place);
+        if(trip.nights>0){
+            bNights.setText(String.valueOf(trip.nights)+" Nights");
+            bNights.setVisibility(View.VISIBLE);
+        }
+        else bNights.setVisibility(View.INVISIBLE);
+        if(trip.depDate.length()>1){
+            if(trip.retDate.length()>1) bFromTo.setText(dispDate(trip.depDate)+"   -   "+dispDate(trip.retDate));
+            else bFromTo.setText(dispDate(trip.depDate));
+            bFromTo.setVisibility(View.VISIBLE);
+        }
+        else bFromTo.setVisibility(View.INVISIBLE);
+        if(trip.isHom==1) bCur.setText(trip.Hcur);
+        else bCur.setText(trip.Hcur+"  |  "+trip.Dcur);
+        bExp.setText("Expense: "+trip.Hcur.substring(6)+" "+String.valueOf(Math.round(trip.exp)));
+        rootView.findViewById(R.id.constraintLayoutTrip).setBackgroundResource(trip.imageId);
 
         backToTrips.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: Save Changes (if they are not saved as they are made)
                 getActivity().finish();
             }
         });
@@ -119,6 +158,7 @@ public class TripHomeFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(getActivity(), addtrip.class));
+                //TODO
             }
         });
 
@@ -222,9 +262,31 @@ public class TripHomeFragment extends Fragment {
          */
 
 
+        Exchange(trip.Dcur.substring(0,3).toLowerCase(),trip.Hcur.substring(0,3).toLowerCase(),getContext());
+
         return rootView;
     }
 
+
+    String dispDate(String d){
+        if(d.length()<2) return "";
+        int day = Integer.valueOf(d.substring(0,2));
+        int mth = Integer.valueOf(d.substring(3,5));
+        String month = " , ";
+        if(mth==1) month = " January, ";
+        if(mth==2) month = " February, ";
+        if(mth==3) month = " March, ";
+        if(mth==4) month = " April, ";
+        if(mth==5) month = " May, ";
+        if(mth==6) month = " June, ";
+        if(mth==7) month = " July, ";
+        if(mth==8) month = " August, ";
+        if(mth==9) month = " September, ";
+        if(mth==10) month = " October, ";
+        if(mth==11) month = " November, ";
+        if(mth==12) month = " December, ";
+        return String.valueOf(day)+month+d.substring(6);
+    }
 
     void showHotel(){
         Dialog curd = new Dialog(getActivity());
@@ -448,6 +510,66 @@ public class TripHomeFragment extends Fragment {
         });
 
         popup.show();
+    }
+
+    void onExchange(float rate){
+        if(rate>0.0f) {
+            trip.rate = rate;
+            db.updateTrip(trip);
+        }
+    }
+
+    void Exchange(String c1, String c2, Context context){
+
+        String url = "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/"+c1+"/"+c2+".json";
+
+        StringRequest request = new StringRequest(url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String string) {
+                //rate[0] = parseJsonData(string,c2);
+                parseJsonData(string,c2);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError volleyError) {
+
+                String url2 = "https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies/"+c1+"/"+c2+".min.json";
+
+                StringRequest request2 = new StringRequest(url2, new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String string) {
+                        //rate[0] = parseJsonData(string,c2);
+                        parseJsonData(string,c2);
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+
+                    }
+                });
+
+                RequestQueue rQueue2 = Volley.newRequestQueue(context);
+                rQueue2.add(request2);
+
+            }
+        });
+
+        RequestQueue rQueue = Volley.newRequestQueue(context);
+        rQueue.add(request);
+
+        //return rate[0];
+
+    }
+
+    void parseJsonData(String jsonString, String c) {
+        float rate = 0.0f;
+        try {
+            JSONObject object = new JSONObject(jsonString);
+            rate = Float.parseFloat(object.getString(c));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        onExchange(rate);
     }
 
 }

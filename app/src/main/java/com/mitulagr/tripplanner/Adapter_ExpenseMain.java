@@ -34,8 +34,18 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
     private List<ExpCat> localDataSet;
     private List<ExpCat> disp;
     Context context;
+    Trip trip;
     int fid;
     DBHandler db;
+
+    public interface OnDataChangeListener{
+        public void onDataChanged();
+    }
+
+    OnDataChangeListener mOnDataChangeListener;
+    public void setOnDataChangeListener(OnDataChangeListener onDataChangeListener){
+        mOnDataChangeListener = onDataChangeListener;
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -55,10 +65,11 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
     }
 
 
-    public Adapter_ExpenseMain(Context context) {
+    public Adapter_ExpenseMain(Context context, Trip trip) {
 
         //this.localDataSet = dataSet;
         //disp = Arrays.asList(dataSet);
+        this.trip = trip;
         db = new DBHandler(context);
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         fid = sp.getInt("Current Trip", 0);
@@ -96,7 +107,7 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
         viewHolder.CatName.setText("  "+disp.get(position).category);
         viewHolder.CatName.setCompoundDrawablesWithIntrinsicBounds(context.getDrawable(disp.get(position).imageId),null,null,null);
-        viewHolder.CatExpense.setText("₹ "+getAmt(disp.get(position).Amt));
+        viewHolder.CatExpense.setText(trip.Hcur.substring(6)+" "+getAmt(disp.get(position).Amt));
 
         viewHolder.CatAdd.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -116,7 +127,7 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
     String getAmt(float amt){
         String a;
         a = String.format("%.0f", amt);
-        if(Float.parseFloat(a)==amt) return a;
+        if(Float.parseFloat(a)==amt || Float.parseFloat(a)>1000) return a;
         a = String.format("%.1f", amt);
         if(Float.parseFloat(a)==amt) return a;
         return String.valueOf(amt);
@@ -163,6 +174,19 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
         Button eBack = (Button) curd.findViewById(R.id.eback);
         Button eDot = (Button) curd.findViewById(R.id.edot);
 
+        eSym.setText(trip.Hcur.substring(6));
+
+        if(trip.isHom==1){
+            eCurDes.setVisibility(View.GONE);
+            eCurHom.setVisibility(View.GONE);
+        }
+        else{
+            eCurDes.setVisibility(View.VISIBLE);
+            eCurHom.setVisibility(View.VISIBLE);
+            eCurHom.setText(trip.Hcur.substring(0,3));
+            eCurDes.setText(trip.Dcur.substring(0,3));
+        }
+
         eDone.setCompoundDrawablesWithIntrinsicBounds(img,null,null,null);
 
         final int [] dot = {-1};
@@ -177,7 +201,7 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
                 eCurHom.setTextColor(Color.BLACK);
                 eCurDes.setTextColor(Color.DKGRAY);
                 // TODO: Set Symbol to Hom
-                eSym.setText("₹");
+                eSym.setText(trip.Hcur.substring(6));
                 isHom[0] = true;
             }
         });
@@ -190,7 +214,7 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
                 eCurDes.setTextColor(Color.BLACK);
                 eCurHom.setTextColor(Color.DKGRAY);
                 // TODO: Set Symbol to Des
-                eSym.setText("$");
+                eSym.setText(trip.Dcur.substring(6));
                 isHom[0] = false;
             }
         });
@@ -202,13 +226,25 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
                 //ExpCat expcat = db.getExpCat(fid,pos);
                 //TODO: Convert if DesAmt
                 float amt = Float.valueOf(amount[0]);
-                disp.get(pos).Amt = disp.get(pos).Amt + amt;
                 //expcat.Amt = expcat.Amt + amt;
 //                if(isHom[0]) expcat.homAmt = expcat.homAmt + amt;
 //                else expcat.DesAmt = expcat.DesAmt + amt;
-                if(isHom[0]) disp.get(pos).homAmt = disp.get(pos).homAmt + amt;
-                else disp.get(pos).DesAmt = disp.get(pos).DesAmt + amt;
+                if(isHom[0]) {
+                    disp.get(pos).homAmt = disp.get(pos).homAmt + amt;
+                    disp.get(pos).Amt = disp.get(pos).Amt + amt;
+                    trip.exp = trip.exp + amt;
+                    trip.Hexp = trip.Hexp + amt;
+                }
+                else {
+                    disp.get(pos).DesAmt = disp.get(pos).DesAmt + amt;
+                    float change = Math.round(amt*trip.rate*100.0f)/100.0f;
+                    disp.get(pos).Amt = disp.get(pos).Amt + change;
+                    trip.exp = trip.exp + change;
+                    trip.Dexp = trip.Dexp + amt;
+                }
                 db.updateExpCat(disp.get(pos));
+                db.updateTrip(trip);
+                if(mOnDataChangeListener != null) mOnDataChangeListener.onDataChanged();
                 notifyDataSetChanged();
                 curd.dismiss();
             }

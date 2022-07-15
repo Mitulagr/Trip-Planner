@@ -28,8 +28,10 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/add_trip" />
+        app:layout_constraintTop_toBottomOf="@+id/add_trip"
+        app:layout_constraintVertical_bias="1.0" />
 
     <ImageButton
         android:id="@+id/sort"
@@ -41,5 +43,19 @@
         app:layout_constraintStart_toEndOf="@+id/add_trip"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_baseline_sort_24" />
+
+    <TextView
+        android:id="@+id/textView25"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="25dp"
+        android:text="No Trips Added. Click on 'Add Trip' to Begin."
+        android:textSize="16sp"
+        android:gravity="center"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/add_trip" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

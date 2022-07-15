@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private Button add_trip;
     private RecyclerView trips;
     private ImageButton sort;
+    private Adapter_Trips adt;
 
     // TODO: Save data onPause etc. also
     // TODO: Save updated sort trip list
@@ -47,6 +48,12 @@ public class MainActivity extends AppCompatActivity {
         add_trip = (Button) findViewById(R.id.add_trip);
         trips = (RecyclerView) findViewById(R.id.trips);
         sort = (ImageButton) findViewById(R.id.sort);
+
+        DBHandler db = new DBHandler(this);
+        if(db.getTripsCount()>0) findViewById(R.id.textView25).setVisibility(View.GONE);
+        else findViewById(R.id.textView25).setVisibility(View.VISIBLE);
+
+        //TODO: open last opened automatically 1. check if last opened did back to trips before closing 2. if deleted
 
         /*
         =============================================================================
@@ -75,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         //Trip [] tripList = {trip1};
 
 
-        Adapter_Trips adt = new Adapter_Trips(this);
+        adt = new Adapter_Trips(this);
 
         trips.setAdapter(adt);
 
@@ -113,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
                 //TODO: Verify this activity starting method
                 Intent intent = new Intent(MainActivity.this, addtrip.class);
                 startActivity(intent);
-                finish();
+                //finish();
             }
         });
 
@@ -162,6 +169,11 @@ public class MainActivity extends AppCompatActivity {
         =============================================================================
          */
 
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        adt.notifyDataSetChanged();
     }
 }

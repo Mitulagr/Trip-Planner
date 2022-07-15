@@ -11,13 +11,17 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
+import android.net.ParseException;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +46,10 @@ import com.google.android.gms.ads.initialization.OnInitializationCompleteListene
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 
 public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
@@ -52,9 +60,10 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
   private AdView mAdView;
   private boolean isDep, touchDes=false;
   private int[] depret = new int[6];
-  private String homCode="inr", homSym="₹", desCode="inr", desSym="₹";
   private int selectedImage = 0;
   private Dialog curd;
+  Trip trip;
+  DBHandler db;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +78,8 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
 
       }
     });
+
+    //TODO: Make trip with default trip and in exchange function update it if it works otherwise let default remain
 
     mAdView = findViewById(R.id.adView);
     AdRequest adRequest = new AdRequest.Builder().build();
@@ -176,6 +187,13 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
     hom = (Button) findViewById(R.id.homcur);
     des = (Button) findViewById(R.id.descur);
 
+    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+    String temp = sp.getString("Home Currency", "");
+    if(temp.length()>1){
+      hom.setText(temp);
+      des.setText(temp);
+    }
+
     hom.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -223,13 +241,34 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
           return;
         }
 
-        //Exchange(desCode,homCode,addtrip.this);
+        create.setText("Please Wait..");
 
-        DBHandler db = new DBHandler(view.getContext());
-        Trip trip = new Trip(db.getTripsCount(),placename.getText().toString(),getImg());
-        db.addTrip(trip);
-        startActivity(new Intent(addtrip.this, MainActivity.class));
-        finish();
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString("Home Currency", hom.getText().toString());
+        editor.commit();
+
+        //Exchange(desCode,homCode,addtrip.this);
+        db = new DBHandler(view.getContext());
+        trip = new Trip(db.getTripsCount(),placename.getText().toString(),getImg());
+        //trip.rate = Exchange(desCode,homCode,view.getContext());
+        trip.depDate = dep.getText().toString();
+        trip.retDate = ret.getText().toString();
+        if(trip.depDate.length()>1 && trip.retDate.length()>1) trip.nights = getNights(trip.depDate,trip.retDate);
+        trip.Hcur = hom.getText().toString();
+        trip.Dcur = des.getText().toString();
+        if(!trip.Hcur.equals(trip.Dcur)) {
+          trip.isHom = 0;
+          trip.rate = savedRate(trip.Dcur.substring(0,3),trip.Hcur.substring(0,3));
+          db.addTrip(trip);
+          startActivity(new Intent(addtrip.this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+          Exchange(trip.Dcur.substring(0,3).toLowerCase(),trip.Hcur.substring(0,3).toLowerCase(),view.getContext());
+        }
+        else {
+          db.addTrip(trip);
+          startActivity(new Intent(addtrip.this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+          finish();
+        }
       }
     });
 
@@ -255,7 +294,7 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
 
   @Override
   public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
-    String date = i2 + "/" + (i1 + 1) + "/" + i;
+    String date = String.format("%02d/%02d/%04d", i2,i1+1,i);
     if (isDep) {
       dep.setText(date);
       depret[0] = i2;
@@ -267,6 +306,18 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
       depret[3] = i1 + 1;
       depret[5] = i;
     }
+  }
+
+  private int getNights(String d1, String d2){
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    try {
+      LocalDate date1 = LocalDate.parse(d1, dtf);
+      LocalDate date2 = LocalDate.parse(d2, dtf);
+      long daysBetween = Duration.between(date1.atStartOfDay(), date2.atStartOfDay()).toDays();
+      return (int) daysBetween;
+    }
+    catch (ParseException e) {}
+    return 0;
   }
 
   private boolean isPlaceEmpty() {
@@ -332,12 +383,23 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
     }
   }
 
-  void onExchange(double rate){
-    //TODO: what happens if device offline (maybe always try to get latest value if rate is 0.0)
-    //placename.setText(String.valueOf(rate));
-    //TODO: save rate also here
+  float savedRate(String c1, String c2){
+    String [] cod = getResources().getStringArray(R.array.code);
+    int i1=-1,i2=-1;
+    for(int i=0;i<cod.length;i++){
+      if(c1.equals(cod[i])) i1=i;
+      if(c2.equals(cod[i])) i2=i;
+      if(i1>=0 && i2>=0) break;
+    }
+    String [] cor = getResources().getStringArray(R.array.rate);
+    return Float.parseFloat(cor[i2])/Float.parseFloat(cor[i1]);
   }
 
+  void onExchange(float rate){
+    if(rate>0.0f) trip.rate = rate;
+    db.updateTrip(trip);
+    finish();
+  }
 
   void Exchange(String c1, String c2, Context context){
 
@@ -346,7 +408,8 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
     StringRequest request = new StringRequest(url, new Response.Listener<String>() {
       @Override
       public void onResponse(String string) {
-        onExchange(parseJsonData(string,c2));
+        //rate[0] = parseJsonData(string,c2);
+        parseJsonData(string,c2);
       }
     }, new Response.ErrorListener() {
       @Override
@@ -357,7 +420,8 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
         StringRequest request2 = new StringRequest(url2, new Response.Listener<String>() {
           @Override
           public void onResponse(String string) {
-            onExchange(parseJsonData(string,c2));
+            //rate[0] = parseJsonData(string,c2);
+            parseJsonData(string,c2);
           }
         }, new Response.ErrorListener() {
           @Override
@@ -375,16 +439,19 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
     RequestQueue rQueue = Volley.newRequestQueue(context);
     rQueue.add(request);
 
+    //return rate[0];
+
   }
 
-  Double parseJsonData(String jsonString, String c) {
+  void parseJsonData(String jsonString, String c) {
+    float rate = 0.0f;
     try {
       JSONObject object = new JSONObject(jsonString);
-      return Double.parseDouble(object.getString(c));
+      rate = Float.parseFloat(object.getString(c));
     } catch (JSONException e) {
       e.printStackTrace();
     }
-    return 0.0;
+    onExchange(rate);
   }
 
   void showCurrency(Boolean isHome){
@@ -433,13 +500,9 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
       public void onClick(View view, int position) {
         if(isHome) {
           hom.setText(adc.getItem(position));
-          homCode = adc.getCode(position);
-          homSym = adc.getSym(position);
         }
         if(!(isHome && touchDes)){
           des.setText(adc.getItem(position));
-          desCode = adc.getCode(position);
-          desSym = adc.getSym(position);
         }
         curd.dismiss();
       }

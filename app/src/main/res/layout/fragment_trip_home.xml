@@ -139,7 +139,7 @@
                     android:background="#40000000"
                     android:paddingHorizontal="4dp"
                     android:paddingVertical="1dp"
-                    android:text="5 Nights"
+                    android:text=""
                     android:textColor="#B7F66E"
                     android:textSize="12sp"
                     android:textStyle="bold"
