@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="10dp"
+    android:background="@color/white"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="16dp">
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/ecurhom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/cur1"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:text="INR"
+        android:textColor="#000000"
+        app:layout_constraintBottom_toBottomOf="@+id/ecurdes"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ecurdes" />
+
+    <EditText
+        android:id="@+id/etitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:ems="10"
+        android:hint="Title (Optional)"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/ecurdes"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/esym"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#020C43"
+        android:textColor="@color/white"
+        android:paddingVertical="2dp"
+        android:paddingHorizontal="10dp"
+        android:text="₹"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@+id/eamt"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/eamt" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/eback"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers2"
+        android:text="⌫"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/e3"
+        app:layout_constraintTop_toBottomOf="@+id/eadd" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/e7"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers"
+        android:text="7"
+        app:layout_constraintEnd_toStartOf="@+id/e8"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/e4" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/e8"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers"
+        android:text="8"
+        app:layout_constraintEnd_toStartOf="@+id/e9"
+        app:layout_constraintStart_toEndOf="@+id/e7"
+        app:layout_constraintTop_toBottomOf="@+id/e5" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/e0"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers"
+        android:text="0"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/e9"
+        app:layout_constraintTop_toBottomOf="@+id/edot" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/e9"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers"
+        android:text="9"
+        app:layout_constraintEnd_toStartOf="@+id/e0"
+        app:layout_constraintStart_toEndOf="@+id/e8"
+        app:layout_constraintTop_toBottomOf="@+id/e6" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/e4"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers"
+        android:text="4"
+        app:layout_constraintEnd_toStartOf="@+id/e5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/e1" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/e5"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers"
+        android:text="5"
+        app:layout_constraintEnd_toStartOf="@+id/e6"
+        app:layout_constraintStart_toEndOf="@+id/e4"
+        app:layout_constraintTop_toBottomOf="@+id/e2" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/e6"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers"
+        android:text="6"
+        app:layout_constraintEnd_toStartOf="@+id/edot"
+        app:layout_constraintStart_toEndOf="@+id/e5"
+        app:layout_constraintTop_toBottomOf="@+id/e3" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/edot"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers2"
+        android:text="."
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/e6"
+        app:layout_constraintTop_toBottomOf="@+id/eback" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/e1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers"
+        android:text="1"
+        app:layout_constraintEnd_toStartOf="@+id/e2"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/eadd" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/e2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers"
+        android:text="2"
+        app:layout_constraintEnd_toStartOf="@+id/e3"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/e1"
+        app:layout_constraintTop_toBottomOf="@+id/eadd" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/e3"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/numbers"
+        android:text="3"
+        app:layout_constraintEnd_toStartOf="@+id/eback"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/e2"
+        app:layout_constraintTop_toBottomOf="@+id/eadd" />
+
+    <Button
+        android:id="@+id/eadd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="10dp"
+        android:backgroundTint="#4CAF50"
+        android:drawableLeft="@drawable/ic_baseline_flight_24"
+        android:text="Add"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/etitle" />
+
+    <TextView
+        android:id="@+id/eamt"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:background="#020C43"
+        android:textColor="@color/white"
+        android:paddingVertical="2dp"
+        android:gravity="clip_vertical"
+        android:textSize="20sp"
+        android:text=""
+        app:layout_constraintBottom_toBottomOf="@+id/eadd"
+        app:layout_constraintEnd_toStartOf="@+id/eadd"
+        app:layout_constraintStart_toEndOf="@+id/esym"
+        app:layout_constraintTop_toTopOf="@+id/eadd" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/ecurdes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/cur2"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:text="USD"
+        android:textColor="#444444"
+        app:layout_constraintBottom_toBottomOf="@+id/etitle"
+        app:layout_constraintStart_toEndOf="@+id/ecurhom"
+        app:layout_constraintTop_toTopOf="@+id/etitle" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

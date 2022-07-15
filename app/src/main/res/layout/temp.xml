@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+  <TextView
+      android:id="@+id/textView3"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Destination Currency"
+      tools:layout_editor_absoluteX="310dp"
+      tools:layout_editor_absoluteY="35dp" />
+
+  <EditText
+      android:id="@+id/editTextDate3"
+      android:layout_width="128dp"
+      android:layout_height="47dp"
+      android:ems="10"
+      android:gravity="center"
+      android:hint="Return Date"
+      android:inputType="date"
+      tools:layout_editor_absoluteX="267dp"
+      tools:layout_editor_absoluteY="92dp" />
+
+  <Button
+      android:id="@+id/button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Button"
+      tools:layout_editor_absoluteX="249dp"
+      tools:layout_editor_absoluteY="258dp" />
+
+  <View
+      android:id="@+id/divider2"
+      android:layout_width="match_parent"
+      android:layout_height="1dp"
+      android:background="?android:attr/listDivider"
+      tools:layout_editor_absoluteX="-16dp"
+      tools:layout_editor_absoluteY="150dp" />
+
+  <EditText
+      android:id="@+id/editTextDate"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:ems="10"
+      android:inputType="date"
+      tools:layout_editor_absoluteX="39dp"
+      tools:layout_editor_absoluteY="271dp" />
+
+  <com.google.android.material.floatingactionbutton.FloatingActionButton
+      android:id="@+id/floatingActionButton3"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:clickable="true"
+      app:srcCompat="@drawable/ic_baseline_add_24"
+      tools:layout_editor_absoluteX="177dp"
+      tools:layout_editor_absoluteY="61dp" />
+
+  <EditText
+      android:id="@+id/editTextDate2"
+      android:layout_width="128dp"
+      android:layout_height="47dp"
+      android:ems="10"
+      android:gravity="center"
+      android:hint="Depart Date"
+      android:inputType="date"
+      tools:layout_editor_absoluteX="16dp"
+      tools:layout_editor_absoluteY="92dp" />
+
+  <TextView
+      android:id="@+id/textView"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Add Trip"
+      android:textStyle="bold"
+      tools:layout_editor_absoluteX="177dp"
+      tools:layout_editor_absoluteY="127dp" />
+
+  <EditText
+      android:id="@+id/editTextTextPersonName"
+      android:layout_width="210dp"
+      android:layout_height="43dp"
+      android:ems="10"
+      android:gravity="center"
+      android:hint="Place"
+      android:inputType="textPersonName"
+      tools:layout_editor_absoluteX="100dp"
+      tools:layout_editor_absoluteY="4dp" />
+
+  <Spinner
+      android:id="@+id/spinner2"
+      android:layout_width="128dp"
+      android:layout_height="27dp"
+      tools:layout_editor_absoluteX="16dp"
+      tools:layout_editor_absoluteY="54dp" />
+
+  <Spinner
+      android:id="@+id/spinner3"
+      android:layout_width="128dp"
+      android:layout_height="27dp"
+      tools:layout_editor_absoluteX="267dp"
+      tools:layout_editor_absoluteY="54dp" />
+
+  <TextView
+      android:id="@+id/textView2"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Home Currency"
+      tools:layout_editor_absoluteX="3dp"
+      tools:layout_editor_absoluteY="35dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

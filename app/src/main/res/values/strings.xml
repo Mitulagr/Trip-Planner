@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Trip Planner</string>
+    <string name="hotCity"><u><b>City</b></u></string>
+    <string name="hotName"><u><b>Hotel Name</b></u></string>
+    <string name="hotNights"><u><b>Nights</b></u></string>
+    <string name="traFrom"><u><b>From</b></u></string>
+    <string name="traTo"><u><b>To</b></u></string>
+    <string name="traNo"><u><b>No.</b></u></string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

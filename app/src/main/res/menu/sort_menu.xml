@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/sort1"
+        android:title="Travel Date ↑" />
+
+    <item
+        android:id="@+id/sort2"
+        android:title="Travel Date ↓" />
+
+    <item
+        android:id="@+id/sort3"
+        android:title="Creation Order ↑" />
+
+    <item
+        android:id="@+id/sort4"
+        android:title="Creation Order ↓" />
+
+    <item
+        android:id="@+id/sort5"
+        android:title="Name (A-Z) ↑" />
+
+    <item
+        android:id="@+id/sort6"
+        android:title="Name (Z-A) ↓" />
+
+</menu>

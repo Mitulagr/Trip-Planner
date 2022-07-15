@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="6dp"
+    android:layout_marginBottom="10dp"
+    android:layout_marginEnd="6dp"
+    android:background="#BBC1DD"
+    android:paddingStart="10dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="10dp">
+
+
+  <TextView
+      android:id="@+id/textCatName"
+      android:layout_width="150dp"
+      android:layout_height="wrap_content"
+      android:drawableStart="@drawable/ic_baseline_flight_24"
+      android:text="  Travel"
+      android:textColor="#000000"
+      android:textSize="16sp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
+
+  <TextView
+      android:id="@+id/textCatExpense"
+      android:layout_width="100dp"
+      android:layout_height="wrap_content"
+      android:text="₹ 0000000"
+      android:textColor="#970000"
+      android:textSize="16sp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toStartOf="@+id/fabAdd"
+      app:layout_constraintStart_toEndOf="@+id/textCatName"
+      app:layout_constraintTop_toTopOf="parent" />
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:clickable="true"
+        app:fabCustomSize="30dp"
+        app:srcCompat="@drawable/ic_baseline_add_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+  <TextView
+      android:id="@+id/textCatExpenseBreakup"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:textSize="8sp"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="@+id/textCatExpense"
+      app:layout_constraintTop_toBottomOf="@+id/textCatExpense" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

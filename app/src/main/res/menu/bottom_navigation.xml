@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_icon1"
+        android:icon="@drawable/ic_baseline_currency_rupee_24"
+        android:title="Expense"
+        />
+    <item
+        android:id="@+id/nav_icon2"
+        android:icon="@drawable/ic_baseline_beach_access_24"
+        android:title="Trip"
+        />
+
+    <item
+        android:id="@+id/nav_icon3"
+        android:icon="@drawable/ic_baseline_note_24"
+        android:title="Notes"
+        />
+
+</menu>

@@ -1,0 +1,32 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/tt1"
+        android:title="Flight"
+        android:icon="@drawable/ic_baseline_flight_24"/>
+
+    <item
+        android:id="@+id/tt2"
+        android:title="Train" />
+
+    <item
+        android:id="@+id/tt3"
+        android:title="Bus" />
+
+    <item
+        android:id="@+id/tt4"
+        android:title="Car" />
+
+    <item
+        android:id="@+id/tt5"
+        android:title="Cruise" />
+
+    <item
+        android:id="@+id/tt6"
+        android:title="Rocket" />
+
+    <item
+        android:id="@+id/tt7"
+        android:title="Other" />
+
+</menu>
