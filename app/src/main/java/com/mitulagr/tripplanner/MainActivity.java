@@ -54,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
         else findViewById(R.id.textView25).setVisibility(View.VISIBLE);
 
         //TODO: open last opened automatically 1. check if last opened did back to trips before closing 2. if deleted
+        //TODO: latest trip at top instead of end + sort logic (save sort preference)
+        //TODO: prevent memory leak when screen rotate while adding anything like activity
+        //TODO: In adding new travel default from name = prev to name and other such things like in day
 
         /*
         =============================================================================

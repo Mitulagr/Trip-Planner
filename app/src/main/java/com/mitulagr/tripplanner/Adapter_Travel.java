@@ -1,6 +1,9 @@
 package com.mitulagr.tripplanner;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,11 +16,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class Adapter_Travel extends RecyclerView.Adapter<Adapter_Travel.ViewHolder> {
 
-    private Travel[] localDataSet;
+    List<Travel> localDataSet;
 
     private Adapter_Travel.onRecyclerViewItemLongClickListener mItemLongClickListener;
 
@@ -62,8 +66,11 @@ public class Adapter_Travel extends RecyclerView.Adapter<Adapter_Travel.ViewHold
 
     }
 
-    public Adapter_Travel(Travel[] tras) {
-        localDataSet = tras;
+    public Adapter_Travel(Context context) {
+        DBHandler db = new DBHandler(context);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        int fid = sp.getInt("Current Trip", 0);
+        localDataSet = db.getAllTravels(fid);
     }
 
     // Create new views (invoked by the layout manager)
@@ -80,17 +87,17 @@ public class Adapter_Travel extends RecyclerView.Adapter<Adapter_Travel.ViewHold
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
 
-        if(localDataSet[position].from_date==null && localDataSet[position].to_date==null){
+        if(localDataSet.get(position).from_date.length()==0 && localDataSet.get(position).to_date.length()==0){
             viewHolder.fromDate.setVisibility(View.GONE);
             viewHolder.toDate.setVisibility(View.GONE);
         }
 
-        if(localDataSet[position].from_time==null && localDataSet[position].to_time==null){
+        if(localDataSet.get(position).from_time.length()==0 && localDataSet.get(position).to_time.length()==0){
             viewHolder.fromTime.setVisibility(View.GONE);
             viewHolder.toTime.setVisibility(View.GONE);
         }
 
-        if(dateNow.equals(localDataSet[position].from_date)) {
+        if(dateNow.equals(localDataSet.get(position).from_date)) {
             viewHolder.from.setTextColor(Color.parseColor("#FF0000"));
             viewHolder.fromDate.setTextColor(Color.parseColor("#FF0000"));
             viewHolder.fromTime.setTextColor(Color.parseColor("#FF0000"));
@@ -100,22 +107,20 @@ public class Adapter_Travel extends RecyclerView.Adapter<Adapter_Travel.ViewHold
             viewHolder.no.setTextColor(Color.parseColor("#FF0000"));
         }
 
-        // TODO: call update adapter everywhere after any corresponding change (eg modify delete add)
-
-        viewHolder.icon.setImageResource(localDataSet[position].img);
-        viewHolder.from.setText(localDataSet[position].from);
-        if(localDataSet[position].from_date!=null) viewHolder.fromDate.setText(localDataSet[position].from_date);
-        if(localDataSet[position].from_time!=null) viewHolder.fromTime.setText(localDataSet[position].from_time);
-        viewHolder.to.setText(localDataSet[position].to);
-        if(localDataSet[position].to_date!=null) viewHolder.toDate.setText(localDataSet[position].to_date);
-        if(localDataSet[position].to_time!=null) viewHolder.toTime.setText(localDataSet[position].to_time);
-        if(localDataSet[position].no!=null) viewHolder.no.setText(localDataSet[position].no);
+        viewHolder.icon.setImageResource(localDataSet.get(position).img);
+        viewHolder.from.setText(localDataSet.get(position).from);
+        viewHolder.fromDate.setText(localDataSet.get(position).from_date);
+        viewHolder.fromTime.setText(localDataSet.get(position).from_time);
+        viewHolder.to.setText(localDataSet.get(position).to);
+        viewHolder.toDate.setText(localDataSet.get(position).to_date);
+        viewHolder.toTime.setText(localDataSet.get(position).to_time);
+        viewHolder.no.setText(localDataSet.get(position).no);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return localDataSet.length;
+        return localDataSet.size();
     }
 
     public String getDate(){

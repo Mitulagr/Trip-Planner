@@ -6,6 +6,9 @@ public class Hotel {
     String name;
     int nights;
 
+    int id;
+    int fid;
+
     Hotel(String city, String name, int nights) {
         this.city = city;
         this.name = name;

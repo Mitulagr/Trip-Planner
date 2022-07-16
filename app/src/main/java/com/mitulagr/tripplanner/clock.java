@@ -10,7 +10,7 @@ public class clock {
 
     Boolean istime = false;
 
-    clock(View view, TextView tv){
+    clock(View view, TextView tv, String curr){
 
         TextView [] Ch = {(TextView) view.findViewById(R.id.Ch1),
                 (TextView) view.findViewById(R.id.Ch2),
@@ -42,6 +42,26 @@ public class clock {
 
         TextView Cam = (TextView) view.findViewById(R.id.Cam);
         TextView Cpm = (TextView) view.findViewById(R.id.Cpm);
+
+        if(curr.length()>0){
+            tv.setText(curr);
+            tv.setVisibility(View.VISIBLE);
+            istime = true;
+            if(curr.charAt(1)==':'){
+                h = Integer.parseInt(curr.substring(0,1))-1;
+                m = Integer.parseInt(curr.substring(2,4))/5;
+                if(curr.charAt(5)=='P') am = false;
+            }
+            else{
+                h = Integer.parseInt(curr.substring(0,2))-1;
+                m = Integer.parseInt(curr.substring(3,5))/5;
+                if(curr.charAt(6)=='P') am = false;
+            }
+            Ch[h].setBackgroundResource(R.drawable.bagh);
+            Cm[m].setBackgroundResource(R.drawable.bagm);
+            if(am) Cam.setBackgroundResource(R.drawable.am);
+            else Cpm.setBackgroundResource(R.drawable.am);
+        }
 
 
         for(int i=0; i<12; i++){

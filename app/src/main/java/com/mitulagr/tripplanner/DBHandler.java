@@ -48,6 +48,26 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String TE_homamt = "TE_homamt";
     private static final String TE_desamt = "TE_desamt";
 
+    // Table Hotel - Columns
+    private static final String TH_ID = "TH_id";
+    private static final String TH_FID = "TH_fid";
+    private static final String TH_city = "TH_category";
+    private static final String TH_name = "TH_img";
+    private static final String TH_nights = "TH_amt";
+
+    // Table Travel - Columns
+    private static final String TTr_ID = "TTr_id";
+    private static final String TTr_FID = "TTr_fid";
+    private static final String TTr_img = "TTr_img";
+    private static final String TTr_type = "TTr_type";
+    private static final String TTr_no = "TTr_no";
+    private static final String TTr_from = "TTr_from";
+    private static final String TTr_fromDate = "TTr_fromDate";
+    private static final String TTr_fromTime = "TTr_fromTime";
+    private static final String TTr_to = "TTr_to";
+    private static final String TTr_toDate = "TTr_toDate";
+    private static final String TTr_toTime = "TTr_toTime";
+
     DBHandler(Context context){
         super(context,DATABASE_NAME,null,1);
         this.context = context;
@@ -84,11 +104,38 @@ public class DBHandler extends SQLiteOpenHelper {
                 +TE_desamt+" REAL,"
                 +"FOREIGN KEY ("+TE_FID+") REFERENCES "+TABLE_Trip+" ("+TT_ID+"))";
         db.execSQL(CREATE_TE);
+
+        String CREATE_TH = "CREATE TABLE "+TABLE_Hotel+"("
+                +TH_ID+" INTEGER PRIMARY KEY,"
+                +TH_FID+" INTEGER,"
+                +TH_city+" TEXT,"
+                +TH_name+" TEXT,"
+                +TH_nights+" INTEGER,"
+                +"FOREIGN KEY ("+TH_FID+") REFERENCES "+TABLE_Trip+" ("+TT_ID+"))";
+        db.execSQL(CREATE_TH);
+
+        String CREATE_TTr = "CREATE TABLE "+TABLE_Travel+"("
+                +TTr_ID+" INTEGER PRIMARY KEY,"
+                +TTr_FID+" INTEGER,"
+                +TTr_img+" INTEGER,"
+                +TTr_type+" TEXT,"
+                +TTr_no+" TEXT,"
+                +TTr_from+" TEXT,"
+                +TTr_fromDate+" TEXT,"
+                +TTr_fromTime+" TEXT,"
+                +TTr_to+" TEXT,"
+                +TTr_toDate+" TEXT,"
+                +TTr_toTime+" TEXT,"
+                +"FOREIGN KEY ("+TTr_FID+") REFERENCES "+TABLE_Trip+" ("+TT_ID+"))";
+        db.execSQL(CREATE_TTr);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
         db.execSQL("DROP TABLE IF EXISTS "+TABLE_Trip);
+        db.execSQL("DROP TABLE IF EXISTS "+TABLE_ExpCat);
+        db.execSQL("DROP TABLE IF EXISTS "+TABLE_Hotel);
+        db.execSQL("DROP TABLE IF EXISTS "+TABLE_Travel);
         onCreate(db);
     }
 
@@ -358,6 +405,7 @@ public class DBHandler extends SQLiteOpenHelper {
         return db.update(TABLE_ExpCat,values,TE_ID+"=?",new String[]{String.valueOf(expcat.id)});
     }
 
+    //TODO: also delete related exps. For Level 2+ deletions confirmation dialog
     public void deleteExpCat(ExpCat expcat){
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_ExpCat, TE_ID+"=?",new String[]{String.valueOf(expcat.id)});
@@ -367,8 +415,243 @@ public class DBHandler extends SQLiteOpenHelper {
 
     /*
     =============================================================================
-    Table Exp
+    Table Hotel
     =============================================================================
      */
+
+    public void addHotel(Hotel hotel){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TH_ID, hotel.id);
+        values.put(TH_FID, hotel.fid);
+        values.put(TH_city, hotel.city);
+        values.put(TH_name, hotel.name);
+        values.put(TH_nights, hotel.nights);
+
+        db.insert(TABLE_Hotel, null, values);
+        db.close();
+    }
+
+    public Hotel getHotel(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor c = db.query(TABLE_Hotel, new String[]{
+                        TH_ID,TH_FID,TH_city,TH_name,TH_nights},
+                TH_ID+"=?", new String[]{String.valueOf(id)},
+                null,null,null,null);
+
+        if (c!=null) c.moveToFirst();
+
+        Hotel hotel = new Hotel(
+                c.getString(c.getColumnIndexOrThrow(TH_city)),
+                c.getString(c.getColumnIndexOrThrow(TH_name)),
+                c.getInt(c.getColumnIndexOrThrow(TH_nights)));
+
+        hotel.id = c.getInt(c.getColumnIndexOrThrow(TH_ID));
+        hotel.fid = c.getInt(c.getColumnIndexOrThrow(TH_FID));
+
+        return hotel;
+    }
+
+    public List<Hotel> getAllHotels(int fid){
+        List<Hotel> hotelList = new ArrayList<Hotel>();
+
+        String selectQuery = "SELECT * FROM "+TABLE_Hotel
+                +" WHERE "+TH_FID+" = "+fid
+                +" ORDER BY "+TH_ID+" ASC";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+
+        if (c!=null && c.moveToFirst()){
+            do {
+                Hotel hotel = new Hotel(
+                        c.getString(c.getColumnIndexOrThrow(TH_city)),
+                        c.getString(c.getColumnIndexOrThrow(TH_name)),
+                        c.getInt(c.getColumnIndexOrThrow(TH_nights)));
+                hotel.id = c.getInt(c.getColumnIndexOrThrow(TH_ID));
+                hotel.fid = c.getInt(c.getColumnIndexOrThrow(TH_FID));
+                hotelList.add(hotel);
+            } while (c.moveToNext());
+        }
+
+        return hotelList;
+    }
+
+    public Hotel getHotel(int fid, int pos) {
+        List<Hotel> hotelList = getAllHotels(fid);
+        return hotelList.get(pos);
+    }
+
+    public int getHotelsCount(int fid){
+        String countQuery = "SELECT * FROM "+TABLE_Hotel+" WHERE "+TH_FID+" = "+fid;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int getHotelsCount(){
+        String countQuery = "SELECT * FROM "+TABLE_Hotel;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int updateHotel(Hotel hotel){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TH_ID, hotel.id);
+        values.put(TH_FID, hotel.fid);
+        values.put(TH_city, hotel.city);
+        values.put(TH_name, hotel.name);
+        values.put(TH_nights, hotel.nights);
+
+        return db.update(TABLE_Hotel,values,TH_ID+"=?",new String[]{String.valueOf(hotel.id)});
+    }
+
+    public void deleteHotel(Hotel hotel){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_Hotel, TH_ID+"=?",new String[]{String.valueOf(hotel.id)});
+        db.close();
+    }
+
+
+    /*
+    =============================================================================
+    Table Travel
+    =============================================================================
+     */
+
+    public void addTravel(Travel travel){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TTr_ID, travel.id);
+        values.put(TTr_FID, travel.fid);
+        values.put(TTr_img, travel.img);
+        values.put(TTr_type, travel.type);
+        values.put(TTr_no, travel.no);
+        values.put(TTr_from, travel.from);
+        values.put(TTr_fromDate, travel.from_date);
+        values.put(TTr_fromTime, travel.from_time);
+        values.put(TTr_to, travel.to);
+        values.put(TTr_toDate, travel.to_date);
+        values.put(TTr_toTime, travel.to_time);
+
+        db.insert(TABLE_Travel, null, values);
+        db.close();
+    }
+
+    public Travel getTravel(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor c = db.query(TABLE_Travel, new String[]{
+                        TTr_ID,TTr_FID,TTr_img,TTr_type,TTr_no,TTr_from,TTr_fromDate,TTr_fromTime,TTr_to,TTr_toDate,TTr_toTime},
+                TTr_ID+"=?", new String[]{String.valueOf(id)},
+                null,null,null,null);
+
+        if (c!=null) c.moveToFirst();
+
+        Travel travel = new Travel(
+                c.getInt(c.getColumnIndexOrThrow(TTr_img)),
+                c.getString(c.getColumnIndexOrThrow(TTr_no)),
+                c.getString(c.getColumnIndexOrThrow(TTr_from)),
+                c.getString(c.getColumnIndexOrThrow(TTr_fromDate)),
+                c.getString(c.getColumnIndexOrThrow(TTr_fromTime)),
+                c.getString(c.getColumnIndexOrThrow(TTr_to)),
+                c.getString(c.getColumnIndexOrThrow(TTr_toDate)),
+                c.getString(c.getColumnIndexOrThrow(TTr_toTime)));
+
+        travel.type = c.getString(c.getColumnIndexOrThrow(TTr_type));
+        travel.id = c.getInt(c.getColumnIndexOrThrow(TTr_ID));
+        travel.fid = c.getInt(c.getColumnIndexOrThrow(TTr_FID));
+
+        return travel;
+    }
+
+    public List<Travel> getAllTravels(int fid){
+        List<Travel> travelList = new ArrayList<Travel>();
+
+        String selectQuery = "SELECT * FROM "+TABLE_Travel
+                +" WHERE "+TTr_FID+" = "+fid
+                +" ORDER BY "+TTr_ID+" ASC";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+
+        if (c!=null && c.moveToFirst()){
+            do {
+                Travel travel = new Travel(
+                        c.getInt(c.getColumnIndexOrThrow(TTr_img)),
+                        c.getString(c.getColumnIndexOrThrow(TTr_no)),
+                        c.getString(c.getColumnIndexOrThrow(TTr_from)),
+                        c.getString(c.getColumnIndexOrThrow(TTr_fromDate)),
+                        c.getString(c.getColumnIndexOrThrow(TTr_fromTime)),
+                        c.getString(c.getColumnIndexOrThrow(TTr_to)),
+                        c.getString(c.getColumnIndexOrThrow(TTr_toDate)),
+                        c.getString(c.getColumnIndexOrThrow(TTr_toTime)));
+                travel.type = c.getString(c.getColumnIndexOrThrow(TTr_type));
+                travel.id = c.getInt(c.getColumnIndexOrThrow(TTr_ID));
+                travel.fid = c.getInt(c.getColumnIndexOrThrow(TTr_FID));
+                travelList.add(travel);
+            } while (c.moveToNext());
+        }
+
+        return travelList;
+    }
+
+    public Travel getTravel(int fid, int pos) {
+        List<Travel> travelList = getAllTravels(fid);
+        return travelList.get(pos);
+    }
+
+    public int getTravelsCount(int fid){
+        String countQuery = "SELECT * FROM "+TABLE_Travel+" WHERE "+TTr_FID+" = "+fid;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int getTravelsCount(){
+        String countQuery = "SELECT * FROM "+TABLE_Travel;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int updateTravel(Travel travel){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TTr_ID, travel.id);
+        values.put(TTr_FID, travel.fid);
+        values.put(TTr_img, travel.img);
+        values.put(TTr_type, travel.type);
+        values.put(TTr_no, travel.no);
+        values.put(TTr_from, travel.from);
+        values.put(TTr_fromDate, travel.from_date);
+        values.put(TTr_fromTime, travel.from_time);
+        values.put(TTr_to, travel.to);
+        values.put(TTr_toDate, travel.to_date);
+        values.put(TTr_toTime, travel.to_time);
+
+        return db.update(TABLE_Travel,values,TTr_ID+"=?",new String[]{String.valueOf(travel.id)});
+    }
+
+    public void deleteTravel(Travel travel){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_Travel, TTr_ID+"=?",new String[]{String.valueOf(travel.id)});
+        db.close();
+    }
 
 }

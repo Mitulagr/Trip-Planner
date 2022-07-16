@@ -23,6 +23,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -93,6 +94,8 @@ public class TripHomeFragment extends Fragment {
     private int id;
     private DBHandler db;
     private Trip trip;
+    Adapter_Travel adt;
+    Adapter_Hotel adh;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -165,37 +168,29 @@ public class TripHomeFragment extends Fragment {
 
         /*
         =============================================================================
-        Hotel Overview (with Cities & Nights)
+        Hotel Overview
         =============================================================================
          */
 
         addHotel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showHotel();
+                showHotel(new Hotel("","",-1));
             }
         });
 
-        // TODO: if >0 hotels then change text to - "* Long Press to Add Expense, Delete, Modify, or Move";
-        // Check every time Hotel Added
-        // Also set back if all hotels deleted
-
-        Hotel h1 = new Hotel("New York", "Hilton", 3);
-        Hotel h2 = new Hotel("New York", "Marriot", 5);
-        Hotel h3 = new Hotel("New York", "Holiday Inn", 2);
-        Hotel[] hotelList = {h1,h2,h3,h2,h1};
-        //Hotel[] hotelList = {};
-
         hotels.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        Adapter_Hotel adh = new Adapter_Hotel(hotelList);
+        adh = new Adapter_Hotel(getContext());
 
         hotels.setAdapter(adh);
+
+        hotelHelpUpdate();
 
         adh.setOnItemLongClickListener(new Adapter_Hotel.onRecyclerViewItemLongClickListener() {
             @Override
             public void onItemLongClickListener(View view, int position) {
-                showEdit(view);
+                showEditHotel(view,position);
             }
         });
 
@@ -209,42 +204,23 @@ public class TripHomeFragment extends Fragment {
         addTravel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showTravel();
+                showTravel(new Travel(R.drawable.ic_baseline_flight_24,"","",
+                        "","","","",""),true);
             }
         });
 
-        // TODO: if >0 travels then change text to - Long Press to Modify or Delete
-        // Check every time Travel Added
-        // Also set back if all travels deleted
-
-        Travel t1 = new Travel(R.drawable.ic_baseline_flight_24, "AI 452", "Mumbai",
-                "16/06/2022", "8:45 PM", "Jaipur",
-                "14/05/2022", "10:30 PM");
-        Travel t2 = new Travel(R.drawable.ic_baseline_flight_24, "AI 452", "Mumbai",
-                "15/06/2022", null, "Jaipur",
-                null, null);
-        Travel t3 = new Travel(R.drawable.ic_baseline_flight_24, "AI 452", "Mumbai",
-                null, "8:45 PM", "Jaipur",
-                "14/06/2022", null);
-        Travel t4 = new Travel(R.drawable.ic_baseline_flight_24, null, "Mumbai",
-                null, "8:45 PM", "Jaipur",
-                "14/05/2022", "10:30 PM");
-        Travel t5 = new Travel(R.drawable.ic_baseline_flight_24, "AI 452", "Mumbai",
-                "17/06/2022", "8:45 PM", "Jaipur",
-                null, "10:30 PM");
-
-        Travel[] travelList = {t1,t2,t3,t4,t5};
-
         travels.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        Adapter_Travel adt = new Adapter_Travel(travelList);
+        adt = new Adapter_Travel(getContext());
 
         travels.setAdapter(adt);
+
+        travelHelpUpdate();
 
         adt.setOnItemLongClickListener(new Adapter_Travel.onRecyclerViewItemLongClickListener() {
             @Override
             public void onItemLongClickListener(View view, int position) {
-                showEdit(view);
+                showEditTravel(view,position);
             }
         });
 
@@ -288,7 +264,17 @@ public class TripHomeFragment extends Fragment {
         return String.valueOf(day)+month+d.substring(6);
     }
 
-    void showHotel(){
+    void hotelHelpUpdate(){
+        if(adh.getItemCount()>0) hotelHelp.setText("* Long Press to Add Expense, Delete, Modify, or Move");
+        else hotelHelp.setText("* No Hotels Added. Click on 'Add Hotel' to Add");
+    }
+
+    void travelHelpUpdate(){
+        if(adt.getItemCount()>0) travelHelp.setText("* Long Press to Add Expense, Delete, Modify, or Move");
+        else travelHelp.setText("* No Travels Added. Click on 'Add Travel' to Add");
+    }
+
+    void showHotel(Hotel hotel){
         Dialog curd = new Dialog(getActivity());
         curd.setContentView(R.layout.addhotel);
         curd.getWindow();
@@ -303,7 +289,24 @@ public class TripHomeFragment extends Fragment {
         TextView Hdec = (TextView) curd.findViewById(R.id.textView30);
         TextView Hinc = (TextView) curd.findViewById(R.id.textView31);
 
+        boolean [] isNew = {false};
+        if(hotel.nights==-1){
+            hotel.id = db.getHotelsCount();
+            hotel.fid = id;
+            isNew[0] = true;
+        }
+        else addHotel.setText("Update Hotel");
+
         final Boolean [] isdec = {true};
+
+        HCity.setText(hotel.city);
+        HName.setText(hotel.name);
+        if(hotel.nights==0){
+            HNights.setText("");
+            HNights.setHint("Blank");
+            isdec[0] = false;
+        }
+        if(hotel.nights>0) HNights.setText(String.valueOf(hotel.nights));
 
         MobileAds.initialize(getActivity(), new OnInitializationCompleteListener() {
             @Override
@@ -361,13 +364,25 @@ public class TripHomeFragment extends Fragment {
                     HName.setError("Hotel Name Mandatory");
                     return;
                 }
+                int nights=0;
+                if(HNights.getText().toString().length()>0) nights = Integer.parseInt(HNights.getText().toString());
+                //Hotel hotel = new Hotel(HCity.getText().toString(), HName.getText().toString(), nights);
+                hotel.nights = nights;
+                hotel.city = HCity.getText().toString();
+                hotel.name = HName.getText().toString();
+                if(isNew[0]) db.addHotel(hotel);
+                else db.updateHotel(hotel);
+
+                adh.localDataSet = db.getAllHotels(id);
+                adh.notifyDataSetChanged();
+                hotelHelpUpdate();
                 curd.dismiss();
             }
         });
     }
 
 
-    void showTravel(){
+    void showTravel(Travel travel, boolean isNew){
         Dialog curd = new Dialog(getActivity());
         curd.setContentView(R.layout.addtravel);
         curd.getWindow();
@@ -388,6 +403,18 @@ public class TripHomeFragment extends Fragment {
         TextView tFromShowTime = (TextView) curd.findViewById(R.id.textView33);
         TextView tToShowTime = (TextView) curd.findViewById(R.id.textView34);
         Button tAdd = (Button) curd.findViewById(R.id.trAdd);
+
+        if(!isNew) tAdd.setText("Update "+travel.type);
+        else tAdd.setText("Add "+travel.type);
+        tType.setText(travel.type);
+        tType.setCompoundDrawablesWithIntrinsicBounds(travel.img,0,R.drawable.ic_baseline_arrow_drop_down_24,0);
+        tNo.setHint(travel.type+" Number");
+        tNo.setText(travel.no);
+        tFromCity.setText(travel.from);
+        tToCity.setText(travel.to);
+        tFromDate.setText(travel.from_date);
+        tToDate.setText(travel.to_date);
+
 
         // TODO: Set From City and Depart Date as previous arrival ones (after checking if they are filled)
 
@@ -453,6 +480,9 @@ public class TripHomeFragment extends Fragment {
                         tNo.setHint(typename+" Number");
                         tAdd.setText("Add "+typename);
 
+                        travel.img = typeimg;
+                        travel.type = typename;
+
                         return true;
                     }
                 });
@@ -463,20 +493,102 @@ public class TripHomeFragment extends Fragment {
 
         TravelDate td = new TravelDate(tFromDate,tToDate,getActivity(),tDepR,tArrR);
 
-        clock Cfrom = new clock(tFromTime,tFromShowTime);
-        clock Cto = new clock(tToTime,tToShowTime);
+        clock Cfrom = new clock(tFromTime,tFromShowTime,travel.from_time);
+        clock Cto = new clock(tToTime,tToShowTime,travel.to_time);
 
         tAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO
+
+                travel.no = tNo.getText().toString();
+                travel.from = tFromCity.getText().toString();
+                travel.to = tToCity.getText().toString();
+                travel.from_date = tFromDate.getText().toString();
+                travel.to_date = tToDate.getText().toString();
+                travel.from_time = tFromShowTime.getText().toString();
+                travel.to_time = tToShowTime.getText().toString();
+
+                if(isNew){
+                    travel.id = db.getTravelsCount();
+                    travel.fid = id;
+                    db.addTravel(travel);
+                }
+                else db.updateTravel(travel);
+
+                adt.localDataSet = db.getAllTravels(id);
+                adt.notifyDataSetChanged();
+                travelHelpUpdate();
                 curd.dismiss();
             }
         });
 
     }
 
-    void showEdit(View view){
+    void showEditHotel(View view, int pos){
+        PopupMenu popup = new PopupMenu(getActivity(),view);
+        popup.getMenuInflater()
+                .inflate(R.menu.edit1, popup.getMenu());
+
+        //int [] done = {-1};
+
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+
+                switch (menuItem.getItemId()) {
+
+                    case R.id.e0:
+                        //Adapter_ExpenseMain adE = new Adapter_ExpenseMain(getContext(),trip);
+                        //adE.showExpense(getContext().getDrawable(disp.get(position).imageId),position);
+                        //TODO: if hotel category deleted, if this hotel deleted.
+                        break;
+                    case R.id.e1:
+                        db.deleteHotel(db.getHotel(id,pos));
+                        adh.localDataSet = db.getAllHotels(id);
+                        adh.notifyDataSetChanged();
+                        hotelHelpUpdate();
+                        break;
+                    case R.id.e2:
+                        showHotel(db.getHotel(id,pos));
+                        break;
+                    case R.id.e3:
+                        if(pos==0) break;
+                        Hotel h1 = db.getHotel(id,pos-1);
+                        Hotel h2 = db.getHotel(id,pos);
+                        int temp = h1.id;
+                        h1.id = h2.id;
+                        h2.id = temp;
+                        db.updateHotel(h1);
+                        db.updateHotel(h2);
+                        adh.localDataSet = db.getAllHotels(id);
+                        adh.notifyDataSetChanged();
+                        //done[0] = pos-1;
+                        break;
+                    case R.id.e4:
+                        if(pos== adh.getItemCount()-1) break;
+                        Hotel h3 = db.getHotel(id,pos);
+                        Hotel h4 = db.getHotel(id,pos+1);
+                        int temp1 = h3.id;
+                        h3.id = h4.id;
+                        h4.id = temp1;
+                        db.updateHotel(h3);
+                        db.updateHotel(h4);
+                        adh.localDataSet = db.getAllHotels(id);
+                        adh.notifyDataSetChanged();
+                        //done[0] = pos+1;
+                        break;
+                }
+
+                return true;
+            }
+        });
+
+        popup.show();
+
+    }
+
+    void showEditTravel(View view, int pos){
         PopupMenu popup = new PopupMenu(getActivity(),view);
         popup.getMenuInflater()
                 .inflate(R.menu.edit1, popup.getMenu());
@@ -492,16 +604,37 @@ public class TripHomeFragment extends Fragment {
 
                         break;
                     case R.id.e1:
-
+                        db.deleteTravel(db.getTravel(id,pos));
+                        adt.localDataSet = db.getAllTravels(id);
+                        adt.notifyDataSetChanged();
+                        travelHelpUpdate();
                         break;
                     case R.id.e2:
-
+                        showTravel(db.getTravel(id,pos),false);
                         break;
                     case R.id.e3:
-
+                        if(pos==0) break;
+                        Travel t1 = db.getTravel(id,pos-1);
+                        Travel t2 = db.getTravel(id,pos);
+                        int temp = t1.id;
+                        t1.id = t2.id;
+                        t2.id = temp;
+                        db.updateTravel(t1);
+                        db.updateTravel(t2);
+                        adt.localDataSet = db.getAllTravels(id);
+                        adt.notifyDataSetChanged();
                         break;
                     case R.id.e4:
-
+                        if(pos== adt.getItemCount()-1) break;
+                        Travel t3 = db.getTravel(id,pos);
+                        Travel t4 = db.getTravel(id,pos+1);
+                        int temp1 = t3.id;
+                        t3.id = t4.id;
+                        t4.id = temp1;
+                        db.updateTravel(t3);
+                        db.updateTravel(t4);
+                        adt.localDataSet = db.getAllTravels(id);
+                        adt.notifyDataSetChanged();
                         break;
                 }
 

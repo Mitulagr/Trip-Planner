@@ -3,6 +3,7 @@ package com.mitulagr.tripplanner;
 public class Travel {
 
     int img;
+    String type = "Flight";
     String no;
 
     String from_time;
@@ -12,6 +13,9 @@ public class Travel {
     String to_time;
     String to;
     String to_date;
+
+    int id;
+    int fid;
 
     public Travel(int img, String no, String from, String from_date, String from_time, String to, String to_date, String to_time) {
         this.img = img;

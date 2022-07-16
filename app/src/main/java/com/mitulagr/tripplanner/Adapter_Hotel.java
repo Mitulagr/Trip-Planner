@@ -1,5 +1,8 @@
 package com.mitulagr.tripplanner;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,9 +10,11 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.List;
+
 public class Adapter_Hotel extends RecyclerView.Adapter<Adapter_Hotel.ViewHolder> {
 
-    private Hotel[] localDataSet;
+    List<Hotel> localDataSet;
 
     private Adapter_Hotel.onRecyclerViewItemLongClickListener mItemLongClickListener;
 
@@ -46,8 +51,11 @@ public class Adapter_Hotel extends RecyclerView.Adapter<Adapter_Hotel.ViewHolder
 
     }
 
-    public Adapter_Hotel(Hotel[] hots) {
-        localDataSet = hots;
+    public Adapter_Hotel(Context context) {
+        DBHandler db = new DBHandler(context);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        int fid = sp.getInt("Current Trip", 0);
+        localDataSet = db.getAllHotels(fid);
     }
 
     // Create new views (invoked by the layout manager)
@@ -63,15 +71,17 @@ public class Adapter_Hotel extends RecyclerView.Adapter<Adapter_Hotel.ViewHolder
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-        viewHolder.city.setText(localDataSet[position].city);
-        viewHolder.name.setText(localDataSet[position].name);
-        viewHolder.nights.setText(String.valueOf(localDataSet[position].nights));
+        viewHolder.city.setText(localDataSet.get(position).city);
+        viewHolder.name.setText(localDataSet.get(position).name);
+        int nig = localDataSet.get(position).nights;
+        if(nig>0) viewHolder.nights.setText(String.valueOf(nig));
+        else viewHolder.nights.setText("");
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return localDataSet.length;
+        return localDataSet.size();
     }
 
 }
