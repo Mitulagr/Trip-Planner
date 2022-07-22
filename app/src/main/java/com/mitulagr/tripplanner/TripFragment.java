@@ -1,5 +1,6 @@
 package com.mitulagr.tripplanner;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -7,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -71,7 +73,8 @@ public class TripFragment extends Fragment {
     private ViewPager2 pager;
     private Adapter_TripNav adn;
 
-    private int days=5;
+    private int id;
+    private DBHandler db;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -84,6 +87,12 @@ public class TripFragment extends Fragment {
         navAdd = (TextView) rootView.findViewById(R.id.tripadd);
         navDiv = (View) rootView.findViewById(R.id.divider7);
 
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+        id = sp.getInt("Current Trip", 0);
+        db = new DBHandler(getContext());
+
+        int days = db.getDaysCount();
+
 
 //        TripHomeFragment frag = new TripHomeFragment();
 //        androidx.fragment.app.FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
@@ -92,8 +101,19 @@ public class TripFragment extends Fragment {
 
         List<Fragment> fragmentList = new ArrayList<>();
         fragmentList.add(new TripHomeFragment());
+        TextView TvCity, TvDate, TvDay, TvDes;
+        Day day;
         for(int i=1; i<=days; i++){
             fragmentList.add(TripDayFragment.newInstance(i));
+            TvCity = fragmentList.get(i).getView().findViewById(R.id.textView35);
+            TvDate = fragmentList.get(i).getView().findViewById(R.id.textView36);
+            TvDay = fragmentList.get(i).getView().findViewById(R.id.textView37);
+            TvDes = fragmentList.get(i).getView().findViewById(R.id.textView23);
+            day = db.getDay(id,i-1);
+            TvCity.setText(day.city);
+            TvDate.setText(dispDate(day.date));
+            TvDay.setText(day.day);
+            TvDes.setText(day.des);
         }
 
         pager = rootView.findViewById(R.id.trip_container);
@@ -165,6 +185,26 @@ public class TripFragment extends Fragment {
         navDiv.setVisibility(View.VISIBLE);
         adn.updateColor(-1);
         navDay.scrollToPosition(0);
+    }
+
+    String dispDate(String d){
+        if(d.length()<2) return "";
+        int day = Integer.valueOf(d.substring(0,2));
+        int mth = Integer.valueOf(d.substring(3,5));
+        String month = " , ";
+        if(mth==1) month = " January, ";
+        if(mth==2) month = " February, ";
+        if(mth==3) month = " March, ";
+        if(mth==4) month = " April, ";
+        if(mth==5) month = " May, ";
+        if(mth==6) month = " June, ";
+        if(mth==7) month = " July, ";
+        if(mth==8) month = " August, ";
+        if(mth==9) month = " September, ";
+        if(mth==10) month = " October, ";
+        if(mth==11) month = " November, ";
+        if(mth==12) month = " December, ";
+        return String.valueOf(day)+month+d.substring(6);
     }
 
 

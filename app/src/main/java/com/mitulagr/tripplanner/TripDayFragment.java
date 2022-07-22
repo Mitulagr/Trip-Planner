@@ -93,7 +93,7 @@ public class TripDayFragment extends Fragment {
         =============================================================================
          */
 
-        //TODO: Set Placename to main place if day 1 and prev day for rest
+        //TODO: Set Placename to main place if day 1 and prev day for rest  
         //TODO: Set Date
         //TODO: Set Day
 

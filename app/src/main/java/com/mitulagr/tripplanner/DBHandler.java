@@ -6,7 +6,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class DBHandler extends SQLiteOpenHelper {
@@ -68,6 +72,15 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String TTr_toDate = "TTr_toDate";
     private static final String TTr_toTime = "TTr_toTime";
 
+    // Table Day - Columns
+    private static final String TD_ID = "TD_id";
+    private static final String TD_FID = "TD_fid";
+    private static final String TD_city = "TD_city";
+    private static final String TD_date = "TD_date";
+    private static final String TD_day = "TD_day";
+    private static final String TD_des = "TD_des";
+
+
     DBHandler(Context context){
         super(context,DATABASE_NAME,null,1);
         this.context = context;
@@ -128,6 +141,16 @@ public class DBHandler extends SQLiteOpenHelper {
                 +TTr_toTime+" TEXT,"
                 +"FOREIGN KEY ("+TTr_FID+") REFERENCES "+TABLE_Trip+" ("+TT_ID+"))";
         db.execSQL(CREATE_TTr);
+
+        String CREATE_TD = "CREATE TABLE "+TABLE_Day+"("
+                +TD_ID+" INTEGER PRIMARY KEY,"
+                +TD_FID+" INTEGER,"
+                +TD_city+" TEXT,"
+                +TD_date+" TEXT,"
+                +TD_day+" TEXT,"
+                +TD_des+" TEXT,"
+                +"FOREIGN KEY ("+TD_FID+") REFERENCES "+TABLE_Trip+" ("+TT_ID+"))";
+        db.execSQL(CREATE_TD);
     }
 
     @Override
@@ -169,6 +192,7 @@ public class DBHandler extends SQLiteOpenHelper {
         db.close();
 
         ExpOnCreate(trip.srno);
+        DayOnCreate(trip);
     }
 
     public Trip getTrip(int id) {
@@ -651,6 +675,175 @@ public class DBHandler extends SQLiteOpenHelper {
     public void deleteTravel(Travel travel){
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_Travel, TTr_ID+"=?",new String[]{String.valueOf(travel.id)});
+        db.close();
+    }
+
+
+    /*
+    =============================================================================
+    Table Day
+    =============================================================================
+     */
+
+    public static String getNextDate(String curDate, int inc) {
+        if(curDate.length()<1) return "";
+        final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+        final Date date;
+        try {
+            date = format.parse(curDate);
+            final Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            calendar.add(Calendar.DAY_OF_YEAR, inc);
+            return format.format(calendar.getTime());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    public static String getCurDay(String curDate) {
+        if(curDate.length()<1) return "";
+        final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+        final Date date;
+        try {
+            date = format.parse(curDate);
+            final Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+            if(dayOfWeek==Calendar.SUNDAY) return "Sunday";
+            if(dayOfWeek==Calendar.MONDAY) return "Monday";
+            if(dayOfWeek==Calendar.TUESDAY) return "Tuesday";
+            if(dayOfWeek==Calendar.WEDNESDAY) return "Wednesday";
+            if(dayOfWeek==Calendar.THURSDAY) return "Thursday";
+            if(dayOfWeek==Calendar.FRIDAY) return "Friday";
+            return "Saturday";
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    public void DayOnCreate(Trip trip){
+        int n = getDaysCount();
+        int d = trip.nights+1;
+        if(d>10) d=10;
+        if(trip.depDate.equals(trip.retDate) && trip.depDate.length()<2) d=5;
+        Day day = new Day();
+        day.des = "";
+        day.fid = trip.srno;
+        for(int i=0;i<d;i++){
+            day.city = trip.place;
+            day.date = getNextDate(trip.depDate,i+1);
+            day.day = getCurDay(day.date);
+            day.id = n+i;
+            addDay(day);
+        }
+    }
+
+    public void addDay(Day day){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TD_ID, day.id);
+        values.put(TD_FID, day.fid);
+        values.put(TD_city, day.city);
+        values.put(TD_date, day.date);
+        values.put(TD_day, day.day);
+        values.put(TD_des, day.des);
+
+        db.insert(TABLE_Day, null, values);
+        db.close();
+    }
+
+    public Day getDay(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor c = db.query(TABLE_Day, new String[]{
+                        TD_ID,TD_FID,TD_city,TD_date,TD_day,TD_des},
+                TD_ID+"=?", new String[]{String.valueOf(id)},
+                null,null,null,null);
+
+        if (c!=null) c.moveToFirst();
+
+        Day day = new Day();
+
+        day.id = c.getInt(c.getColumnIndexOrThrow(TD_ID));
+        day.fid = c.getInt(c.getColumnIndexOrThrow(TD_FID));
+        day.city = c.getString(c.getColumnIndexOrThrow(TD_city));
+        day.date = c.getString(c.getColumnIndexOrThrow(TD_date));
+        day.day = c.getString(c.getColumnIndexOrThrow(TD_day));
+        day.des = c.getString(c.getColumnIndexOrThrow(TD_des));
+
+        return day;
+    }
+
+    public List<Day> getAllDays(int fid){
+        List<Day> dayList = new ArrayList<Day>();
+
+        String selectQuery = "SELECT * FROM "+TABLE_Day
+                +" WHERE "+TD_FID+" = "+fid
+                +" ORDER BY "+TD_ID+" ASC";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+
+        if (c!=null && c.moveToFirst()){
+            do {
+                Day day = new Day();
+
+                day.id = c.getInt(c.getColumnIndexOrThrow(TD_ID));
+                day.fid = c.getInt(c.getColumnIndexOrThrow(TD_FID));
+                day.city = c.getString(c.getColumnIndexOrThrow(TD_city));
+                day.date = c.getString(c.getColumnIndexOrThrow(TD_date));
+                day.day = c.getString(c.getColumnIndexOrThrow(TD_day));
+                day.des = c.getString(c.getColumnIndexOrThrow(TD_des));
+                dayList.add(day);
+            } while (c.moveToNext());
+        }
+
+        return dayList;
+    }
+
+    public Day getDay(int fid, int pos) {
+        List<Day> dayList = getAllDays(fid);
+        return dayList.get(pos);
+    }
+
+    public int getDaysCount(int fid){
+        String countQuery = "SELECT * FROM "+TABLE_Day+" WHERE "+TD_FID+" = "+fid;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int getDaysCount(){
+        String countQuery = "SELECT * FROM "+TABLE_Day;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int updateDay(Day day){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TD_ID, day.id);
+        values.put(TD_FID, day.fid);
+        values.put(TD_city, day.city);
+        values.put(TD_date, day.date);
+        values.put(TD_day, day.day);
+        values.put(TD_des, day.des);
+
+        return db.update(TABLE_Day,values,TD_ID+"=?",new String[]{String.valueOf(day.id)});
+    }
+
+    public void deleteDay(Day day){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_Day, TD_ID+"=?",new String[]{String.valueOf(day.id)});
         db.close();
     }
 
