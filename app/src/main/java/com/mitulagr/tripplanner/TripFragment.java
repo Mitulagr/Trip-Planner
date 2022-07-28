@@ -16,7 +16,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -75,6 +79,7 @@ public class TripFragment extends Fragment {
 
     private int id;
     private DBHandler db;
+    int days;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -91,7 +96,7 @@ public class TripFragment extends Fragment {
         id = sp.getInt("Current Trip", 0);
         db = new DBHandler(getContext());
 
-        int days = db.getDaysCount();
+        days = db.getDaysCount(id);
 
 
 //        TripHomeFragment frag = new TripHomeFragment();
@@ -105,15 +110,15 @@ public class TripFragment extends Fragment {
         Day day;
         for(int i=1; i<=days; i++){
             fragmentList.add(TripDayFragment.newInstance(i));
-            TvCity = fragmentList.get(i).getView().findViewById(R.id.textView35);
-            TvDate = fragmentList.get(i).getView().findViewById(R.id.textView36);
-            TvDay = fragmentList.get(i).getView().findViewById(R.id.textView37);
-            TvDes = fragmentList.get(i).getView().findViewById(R.id.textView23);
-            day = db.getDay(id,i-1);
-            TvCity.setText(day.city);
-            TvDate.setText(dispDate(day.date));
-            TvDay.setText(day.day);
-            TvDes.setText(day.des);
+//            TvCity = fragmentList.get(i).getView().findViewById(R.id.textView35);
+//            TvDate = fragmentList.get(i).getView().findViewById(R.id.textView36);
+//            TvDay = fragmentList.get(i).getView().findViewById(R.id.textView37);
+//            TvDes = fragmentList.get(i).getView().findViewById(R.id.textView23);
+//            day = db.getDay(id,i-1);
+//            TvCity.setText(day.city);
+//            TvDate.setText(dispDate(day.date));
+//            TvDay.setText(day.day);
+//            TvDes.setText(day.des);
         }
 
         pager = rootView.findViewById(R.id.trip_container);
@@ -165,6 +170,30 @@ public class TripFragment extends Fragment {
             }
         });
 
+        navAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Day day = new Day();
+                Day prev = db.getDay(id,days-1);
+                day.city = prev.city;
+                day.date = getNextDate(prev.date,1);
+                day.day = getCurDay(day.date);
+                day.des = "";
+                day.fid = prev.fid;
+                day.id = db.getDaysCount();
+                db.addDay(day);
+                fragmentList.add(TripDayFragment.newInstance(days+1));
+                pagerAdapter.fragmentList = fragmentList;
+                pagerAdapter.notifyDataSetChanged();
+                adn.n++;
+                onDayClick(days);
+                adn.selected = days;
+                pager.setCurrentItem(days+1,true);
+                days++;
+                adn.notifyDataSetChanged();
+            }
+        });
+
         return rootView;
     }
 
@@ -207,5 +236,42 @@ public class TripFragment extends Fragment {
         return String.valueOf(day)+month+d.substring(6);
     }
 
+    public static String getNextDate(String curDate, int inc) {
+        if(curDate.length()<1) return "";
+        final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+        final Date date;
+        try {
+            date = format.parse(curDate);
+            final Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            calendar.add(Calendar.DAY_OF_YEAR, inc);
+            return format.format(calendar.getTime());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    public static String getCurDay(String curDate) {
+        if(curDate.length()<1) return "";
+        final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+        final Date date;
+        try {
+            date = format.parse(curDate);
+            final Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+            if(dayOfWeek==Calendar.SUNDAY) return "Sunday";
+            if(dayOfWeek==Calendar.MONDAY) return "Monday";
+            if(dayOfWeek==Calendar.TUESDAY) return "Tuesday";
+            if(dayOfWeek==Calendar.WEDNESDAY) return "Wednesday";
+            if(dayOfWeek==Calendar.THURSDAY) return "Thursday";
+            if(dayOfWeek==Calendar.FRIDAY) return "Friday";
+            return "Saturday";
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
 
 }

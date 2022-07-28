@@ -80,6 +80,13 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String TD_day = "TD_day";
     private static final String TD_des = "TD_des";
 
+    // Table Activity - Columns
+    private static final String TA_ID = "TA_id";
+    private static final String TA_FID = "TA_fid";
+    private static final String TA_title = "TA_title";
+    private static final String TA_des = "TA_des";
+    private static final String TA_img = "TA_img";
+
 
     DBHandler(Context context){
         super(context,DATABASE_NAME,null,1);
@@ -151,6 +158,15 @@ public class DBHandler extends SQLiteOpenHelper {
                 +TD_des+" TEXT,"
                 +"FOREIGN KEY ("+TD_FID+") REFERENCES "+TABLE_Trip+" ("+TT_ID+"))";
         db.execSQL(CREATE_TD);
+
+        String CREATE_TA = "CREATE TABLE "+TABLE_Activity+"("
+                +TA_ID+" INTEGER PRIMARY KEY,"
+                +TA_FID+" INTEGER,"
+                +TA_title+" TEXT,"
+                +TA_des+" TEXT,"
+                +TA_img+" INTEGER,"
+                +"FOREIGN KEY ("+TA_FID+") REFERENCES "+TABLE_Day+" ("+TD_ID+"))";
+        db.execSQL(CREATE_TA);
     }
 
     @Override
@@ -159,6 +175,8 @@ public class DBHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS "+TABLE_ExpCat);
         db.execSQL("DROP TABLE IF EXISTS "+TABLE_Hotel);
         db.execSQL("DROP TABLE IF EXISTS "+TABLE_Travel);
+        db.execSQL("DROP TABLE IF EXISTS "+TABLE_Day);
+        db.execSQL("DROP TABLE IF EXISTS "+TABLE_Activity);
         onCreate(db);
     }
 
@@ -733,7 +751,7 @@ public class DBHandler extends SQLiteOpenHelper {
         day.fid = trip.srno;
         for(int i=0;i<d;i++){
             day.city = trip.place;
-            day.date = getNextDate(trip.depDate,i+1);
+            day.date = getNextDate(trip.depDate,i);
             day.day = getCurDay(day.date);
             day.id = n+i;
             addDay(day);
@@ -845,6 +863,129 @@ public class DBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_Day, TD_ID+"=?",new String[]{String.valueOf(day.id)});
         db.close();
+    }
+
+
+    /*
+    =============================================================================
+    Table Activity
+    =============================================================================
+     */
+
+    public void addActivity(Activity act){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TA_ID, act.id);
+        values.put(TA_FID, act.fid);
+        values.put(TA_title, act.title);
+        values.put(TA_des, act.desc);
+        values.put(TA_img, act.img);
+
+        db.insert(TABLE_Activity, null, values);
+        db.close();
+    }
+
+    public Activity getActivity(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor c = db.query(TABLE_Activity, new String[]{
+                        TA_ID,TA_FID,TA_title,TA_des,TA_img},
+                TA_ID+"=?", new String[]{String.valueOf(id)},
+                null,null,null,null);
+
+        if (c!=null) c.moveToFirst();
+
+        Activity act = new Activity(c.getString(c.getColumnIndexOrThrow(TA_title)),
+                c.getString(c.getColumnIndexOrThrow(TA_des)),
+                c.getInt(c.getColumnIndexOrThrow(TA_img)));
+
+        act.id = c.getInt(c.getColumnIndexOrThrow(TA_ID));
+        act.fid = c.getInt(c.getColumnIndexOrThrow(TA_FID));
+
+        return act;
+    }
+
+    public List<Activity> getAllActivities(int fid){
+        List<Activity> actList = new ArrayList<Activity>();
+
+        String selectQuery = "SELECT * FROM "+TABLE_Activity
+                +" WHERE "+TA_FID+" = "+fid
+                +" ORDER BY "+TA_ID+" ASC";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+
+        if (c!=null && c.moveToFirst()){
+            do {
+                Activity act = new Activity(c.getString(c.getColumnIndexOrThrow(TA_title)),
+                        c.getString(c.getColumnIndexOrThrow(TA_des)),
+                        c.getInt(c.getColumnIndexOrThrow(TA_img)));
+
+                act.id = c.getInt(c.getColumnIndexOrThrow(TA_ID));
+                act.fid = c.getInt(c.getColumnIndexOrThrow(TA_FID));
+                actList.add(act);
+            } while (c.moveToNext());
+        }
+
+        return actList;
+    }
+
+    public List<Activity> getAllActivities(int srno, int day){
+        List<Day> dayList = getAllDays(srno);
+        return getAllActivities(dayList.get(day-1).id);
+    }
+
+    public Activity getActivity(int fid, int pos) {
+        List<Activity> actList = getAllActivities(fid);
+        return actList.get(pos);
+    }
+
+    public Activity getActivity(int srno, int day, int pos) {
+        List<Activity> actList = getAllActivities(srno,day);
+        return actList.get(pos);
+    }
+
+    public int getActivitiesCount(int fid){
+        String countQuery = "SELECT * FROM "+TABLE_Activity+" WHERE "+TA_FID+" = "+fid;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int getActivitiesCount(){
+        String countQuery = "SELECT * FROM "+TABLE_Activity;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int updateActivity(Activity act){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TA_ID, act.id);
+        values.put(TA_FID, act.fid);
+        values.put(TA_title, act.title);
+        values.put(TA_des, act.desc);
+        values.put(TA_img, act.img);
+
+        return db.update(TABLE_Activity,values,TA_ID+"=?",new String[]{String.valueOf(act.id)});
+    }
+
+    public void deleteActivity(Activity act){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_Activity, TA_ID+"=?",new String[]{String.valueOf(act.id)});
+        db.close();
+    }
+
+    public int getActivityFid(int srno, int day){
+        List<Day> dayList = getAllDays(srno);
+        return dayList.get(day-1).id;
     }
 
 }

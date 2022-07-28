@@ -53,10 +53,18 @@ public class MainActivity extends AppCompatActivity {
         if(db.getTripsCount()>0) findViewById(R.id.textView25).setVisibility(View.GONE);
         else findViewById(R.id.textView25).setVisibility(View.VISIBLE);
 
-        //TODO: open last opened automatically 1. check if last opened did back to trips before closing 2. if deleted
+        //TODO: open last opened automatically 2. if deleted
         //TODO: latest trip at top instead of end + sort logic (save sort preference)
         //TODO: prevent memory leak when screen rotate while adding anything like activity
         //TODO: In adding new travel default from name = prev to name and other such things like in day
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        int id = sp.getInt("Current Trip", -1);
+        if(id!=-1){
+            Intent intent = new Intent(MainActivity.this, PageMain.class);
+            startActivity(intent);
+        }
+
 
         /*
         =============================================================================

@@ -1,6 +1,8 @@
 package com.mitulagr.tripplanner;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,9 +14,11 @@ import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.List;
+
 public class Adapter_Activity extends RecyclerView.Adapter<Adapter_Activity.ViewHolder> {
 
-    private Activity[] localDataSet;
+    List<Activity> localDataSet;
     private onRecyclerViewItemLongClickListener mItemLongClickListener;
 
     public void setOnItemLongClickListener(onRecyclerViewItemLongClickListener mItemLongClickListener) {
@@ -53,8 +57,11 @@ public class Adapter_Activity extends RecyclerView.Adapter<Adapter_Activity.View
 
     }
 
-    public Adapter_Activity(Activity[] acts) {
-        localDataSet = acts;
+    public Adapter_Activity(Context context, int day) {
+        DBHandler db = new DBHandler(context);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        int srno = sp.getInt("Current Trip", 0);
+        localDataSet = db.getAllActivities(srno,day);
     }
 
     // Create new views (invoked by the layout manager)
@@ -70,17 +77,18 @@ public class Adapter_Activity extends RecyclerView.Adapter<Adapter_Activity.View
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-        if(localDataSet[position].title!="") viewHolder.title.setText(localDataSet[position].title);
+        Activity act = localDataSet.get(position);
+        if(act.title!="") viewHolder.title.setText(act.title);
         else viewHolder.title.setVisibility(View.GONE);
-        if(localDataSet[position].desc!="") viewHolder.desc.setText(localDataSet[position].desc);
+        if(act.desc!="") viewHolder.desc.setText(act.desc);
         else viewHolder.desc.setVisibility(View.GONE);
-        viewHolder.img.setImageResource(localDataSet[position].img);
+        viewHolder.img.setImageResource(act.img);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return localDataSet.length;
+        return localDataSet.size();
     }
 
 }

@@ -153,6 +153,10 @@ public class TripHomeFragment extends Fragment {
         backToTrips.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+                SharedPreferences.Editor editor = sp.edit();
+                editor.putInt("Current Trip", -1);
+                editor.commit();
                 getActivity().finish();
             }
         });

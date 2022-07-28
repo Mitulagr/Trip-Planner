@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class Adapter_TripNav extends RecyclerView.Adapter<Adapter_TripNav.ViewHolder> {
 
-    private int n;
+    int n;
     int selected = -1;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
