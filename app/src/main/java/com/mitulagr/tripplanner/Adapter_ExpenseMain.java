@@ -2,6 +2,7 @@ package com.mitulagr.tripplanner;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -20,6 +21,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,14 +34,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+
 public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMain.ViewHolder> {
 
-    private List<ExpCat> localDataSet;
-    private List<ExpCat> disp;
+    List<ExpCat> localDataSet;
     Context context;
     Trip trip;
     int fid;
     DBHandler db;
+    String qry = "";
 
     public interface OnDataChangeListener{
         public void onDataChanged();
@@ -47,11 +57,31 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
         mOnDataChangeListener = onDataChangeListener;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public interface OnMainClickListener{
+        public void onMainClicked(int position);
+    }
+
+    OnMainClickListener mOnMainClickListener;
+    public void setOnMainClickListener(OnMainClickListener onMainClickListener){
+        mOnMainClickListener = onMainClickListener;
+    }
+
+    public interface LongClickListener{
+        public void onItemLongClickListener(View view, int position);
+    }
+
+    LongClickListener mItemLongClickListener;
+    public void setOnItemLongClickListener(LongClickListener longClickListener){
+        mItemLongClickListener = longClickListener;
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
 
         private final TextView CatName;
         private final TextView CatExpense;
         private final FloatingActionButton CatAdd;
+        private final View CatMain;
+        private final View CatPar;
 
         public ViewHolder(View view) {
             super(view);
@@ -60,8 +90,28 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
             CatName = (TextView) view.findViewById(R.id.textCatName);
             CatExpense = (TextView) view.findViewById(R.id.textCatExpense);
             CatAdd = (FloatingActionButton) view.findViewById(R.id.fabAdd);
+            CatMain = (View) view.findViewById(R.id.mainParent);
+            CatPar = (View) view.findViewById(R.id.fabParent);
+
+            view.setOnLongClickListener(this);
         }
 
+        @Override
+        public boolean onLongClick(View view) {
+            if(mItemLongClickListener!=null){
+                mItemLongClickListener.onItemLongClickListener(view,getAdapterPosition());
+            }
+            return true;
+        }
+
+//        @Override
+//        public boolean onLongClick(View view) {
+////            if (mItemLongClickListener != null) {
+////                mItemLongClickListener.onItemLongClickListener(view, getAdapterPosition());
+////            }
+//            editExpense(view,getAdapterPosition());
+//            return true;
+//        }
     }
 
 
@@ -73,7 +123,7 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
         db = new DBHandler(context);
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         fid = sp.getInt("Current Trip", 0);
-        disp = db.getAllExpCats(fid);
+        localDataSet = db.getAllExpCats(fid);
         this.context = context;
     }
 
@@ -105,48 +155,98 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-        viewHolder.CatName.setText("  "+disp.get(position).category);
-        viewHolder.CatName.setCompoundDrawablesWithIntrinsicBounds(context.getDrawable(disp.get(position).imageId),null,null,null);
-        viewHolder.CatExpense.setText(trip.Hcur.substring(6)+" "+getAmt(disp.get(position).Amt));
+        viewHolder.CatName.setText("  "+localDataSet.get(position).category);
+        viewHolder.CatName.setCompoundDrawablesWithIntrinsicBounds(context.getDrawable(localDataSet.get(position).imageId),null,null,null);
+        viewHolder.CatExpense.setText(trip.Hcur.substring(6)+" "+getAmt(localDataSet.get(position).Amt));
 
-        viewHolder.CatAdd.setOnClickListener(new View.OnClickListener() {
+//        if(localDataSet.size()!=disp.size()){
+//            for(int i=0;i<localDataSet.size();i++){
+//                if(localDataSet.get(i).id==disp.get(position).id){
+//                    ps = i;
+//                    break;
+//                }
+//            }
+//        }
+
+        viewHolder.CatPar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showExpense(context.getDrawable(disp.get(position).imageId),position);
+                showExpense(localDataSet.get(position).imageId,
+                        db.getExpCatPos(localDataSet.get(position)),
+                        new Exp("",0.0f,1),
+                        true);
             }
         });
 
+        viewHolder.CatMain.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mOnMainClickListener!=null) mOnMainClickListener.onMainClicked(db.getExpCatPos(localDataSet.get(position)));
+//                ExpActivity EA = new ExpActivity();
+//                ActivityResultLauncher<Intent> aa = context.register
+//                ActivityResultLauncher<Intent> startActivityForResult = EA.registerForActivityResult(
+//                        new ActivityResultContracts.StartActivityForResult(),
+//                        new ActivityResultCallback<ActivityResult>() {
+//                            @Override
+//                            public void onActivityResult(ActivityResult result) {
+//                                localDataSet = db.getAllExpCats(trip.srno);
+//                                notifyDataSetChanged();
+//                                if (mOnDataChangeListener != null)
+//                                    mOnDataChangeListener.onDataChanged();
+//                            }
+//                        });
+//                Intent i = new Intent(context, EA.getClass());
+//                i.putExtra("pos",position);
+//                context.startActivity(i);
+////                ActivityResultLauncher<Intent> activityResultLauncher = registerAdapterDataObserver(
+////                        new ActivityResultContracts.StartActivityForResult(),
+////                        new ActivityResultCallback<ActivityResult>() {
+////                            @Override
+////                            public void onActivityResult(ActivityResult result) {
+////
+////                            }
+////                        });
+////            }
+////        });
+            }
+        });
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return disp.size();
+        return localDataSet.size();
     }
 
     String getAmt(float amt){
         String a;
         a = String.format("%.0f", amt);
-        if(Float.parseFloat(a)==amt || Float.parseFloat(a)>1000) return a;
+        if(Float.parseFloat(a)==amt || amt>1000.0f) return a;
         a = String.format("%.1f", amt);
-        if(Float.parseFloat(a)==amt) return a;
-        return String.valueOf(amt);
+        if(Float.parseFloat(a)==amt || amt>100.0f) return a;
+        return String.format("%.2f", amt);
     }
 
     void filter(String text){
+        qry = text;
         List<ExpCat> temp = new ArrayList<ExpCat>();
-        localDataSet = db.getAllExpCats(fid);
+        List<ExpCat> all = db.getAllExpCats(fid);
+        if(text.length()==0){
+            localDataSet = all;
+            notifyDataSetChanged();
+            return;
+        }
         text = text.toLowerCase();
-        for(int i=0; i<localDataSet.size(); i++){
-            if(localDataSet.get(i).category.toLowerCase().contains(text)){
-                temp.add(localDataSet.get(i));
+        for(int i=0; i<all.size(); i++){
+            if(all.get(i).category.toLowerCase().contains(text)){
+                temp.add(all.get(i));
             }
         }
-        disp = temp;
+        localDataSet = temp;
         notifyDataSetChanged();
     }
 
-    void showExpense(Drawable img, int pos){
+    void showExpense(int img, int pos, Exp exp, boolean isNew){
         Dialog curd = new Dialog(context);
         curd.setContentView(R.layout.addexpense);
         curd.getWindow();
@@ -187,11 +287,34 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
             eCurDes.setText(trip.Dcur.substring(0,3));
         }
 
-        eDone.setCompoundDrawablesWithIntrinsicBounds(img,null,null,null);
+        eDone.setCompoundDrawablesWithIntrinsicBounds(img,0,0,0);
 
         final int [] dot = {-1};
         final String [] amount = {""};
         final Boolean [] isHom = {true};
+
+        eTitle.setText(exp.title);
+
+        if(!isNew){
+            float amnt;
+            if(exp.isHome==0) {
+                eCurDes.callOnClick();
+                amnt = exp.AmtD;
+            }
+            else amnt = exp.Amt;
+            amount[0] = String.format("%.0f",amnt);
+            if(Float.parseFloat(amount[0])==amnt || amnt>1000.0f) ;
+            else{
+                amount[0] = String.format("%.1f",amnt);
+                dot[0] = 1;
+                if(Float.parseFloat(amount[0])==amnt || amnt>100.0f) ;
+                else {
+                    amount[0] = String.format("%.2f",amnt);
+                    dot[0] = 2;
+                }
+            }
+            eAmt.setText(amount[0]);
+        }
 
         eCurHom.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -223,28 +346,44 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
         eDone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //ExpCat expcat = db.getExpCat(fid,pos);
-                //TODO: Convert if DesAmt
+
+                if(amount[0].length()==0) return;
+
+                ExpCat expcat = db.getExpCat(fid,pos);
+
                 float amt = Float.valueOf(amount[0]);
-                //expcat.Amt = expcat.Amt + amt;
-//                if(isHom[0]) expcat.homAmt = expcat.homAmt + amt;
-//                else expcat.DesAmt = expcat.DesAmt + amt;
+
+                //Exp exp = new Exp(eTitle.getText().toString(),amt,isHom[0]?1:0);
+                exp.title = eTitle.getText().toString();
+
                 if(isHom[0]) {
-                    disp.get(pos).homAmt = disp.get(pos).homAmt + amt;
-                    disp.get(pos).Amt = disp.get(pos).Amt + amt;
                     trip.exp = trip.exp + amt;
                     trip.Hexp = trip.Hexp + amt;
+                    expcat.Amt = expcat.Amt + amt;
+                    expcat.homAmt = expcat.homAmt + amt;
+                    exp.Amt = amt;
+                    exp.isHome = 1;
                 }
                 else {
-                    disp.get(pos).DesAmt = disp.get(pos).DesAmt + amt;
                     float change = Math.round(amt*trip.rate*100.0f)/100.0f;
-                    disp.get(pos).Amt = disp.get(pos).Amt + change;
                     trip.exp = trip.exp + change;
                     trip.Dexp = trip.Dexp + amt;
+                    expcat.Amt = expcat.Amt + change;
+                    expcat.DesAmt = expcat.DesAmt + amt;
+                    exp.AmtD = amt;
+                    exp.Amt = change;
+                    exp.isHome = 0;
                 }
-                db.updateExpCat(disp.get(pos));
+                db.updateExpCat(expcat);
                 db.updateTrip(trip);
+                if(isNew){
+                    exp.id = db.getExpsCount();
+                    exp.fid = expcat.id;
+                    db.addExp(exp);
+                }
+                else db.updateExp(exp);
                 if(mOnDataChangeListener != null) mOnDataChangeListener.onDataChanged();
+                filter(qry);
                 notifyDataSetChanged();
                 curd.dismiss();
             }
@@ -286,4 +425,3 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
     }
 
 }
-

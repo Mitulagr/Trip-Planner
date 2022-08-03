@@ -169,6 +169,13 @@ public class TripHomeFragment extends Fragment {
             }
         });
 
+        deleteTrip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
 
         /*
         =============================================================================
@@ -543,9 +550,12 @@ public class TripHomeFragment extends Fragment {
                 switch (menuItem.getItemId()) {
 
                     case R.id.e0:
-                        //Adapter_ExpenseMain adE = new Adapter_ExpenseMain(getContext(),trip);
-                        //adE.showExpense(getContext().getDrawable(disp.get(position).imageId),position);
-                        //TODO: if hotel category deleted, if this hotel deleted.
+                        Adapter_ExpenseMain adem = new Adapter_ExpenseMain(getContext(),trip);
+                        ExpCat expCat = db.getExpCat(id,"Hotel");
+                        adem.showExpense(expCat.imageId,
+                                db.getExpCatPos(expCat),
+                                new Exp(adh.localDataSet.get(pos).name,0.0f,1),
+                                true);
                         break;
                     case R.id.e1:
                         db.deleteHotel(db.getHotel(id,pos));
@@ -605,7 +615,14 @@ public class TripHomeFragment extends Fragment {
                 switch (menuItem.getItemId()) {
 
                     case R.id.e0:
-
+                        Adapter_ExpenseMain adem = new Adapter_ExpenseMain(getContext(),trip);
+                        ExpCat expCat = db.getExpCat(id,"Travel");
+                        Travel trv = adt.localDataSet.get(pos);
+                        String trvT = trv.type + " | " + trv.from + " - " + trv.to;
+                        adem.showExpense(expCat.imageId,
+                                db.getExpCatPos(expCat),
+                                new Exp(trvT,0.0f,1),
+                                true);
                         break;
                     case R.id.e1:
                         db.deleteTravel(db.getTravel(id,pos));

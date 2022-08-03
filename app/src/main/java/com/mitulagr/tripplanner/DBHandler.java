@@ -87,6 +87,14 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String TA_des = "TA_des";
     private static final String TA_img = "TA_img";
 
+    // Table Exp - Columns
+    private static final String TEx_ID = "TEx_id";
+    private static final String TEx_FID = "TEx_fid";
+    private static final String TEx_title = "TEx_title";
+    private static final String TEx_amt = "TEx_amt";
+    private static final String TEx_amtd = "TEx_amtd";
+    private static final String TEx_isHome = "TEx_isHome";
+
 
     DBHandler(Context context){
         super(context,DATABASE_NAME,null,1);
@@ -167,6 +175,16 @@ public class DBHandler extends SQLiteOpenHelper {
                 +TA_img+" INTEGER,"
                 +"FOREIGN KEY ("+TA_FID+") REFERENCES "+TABLE_Day+" ("+TD_ID+"))";
         db.execSQL(CREATE_TA);
+
+        String CREATE_TEx = "CREATE TABLE "+TABLE_Exp+"("
+                +TEx_ID+" INTEGER PRIMARY KEY,"
+                +TEx_FID+" INTEGER,"
+                +TEx_title+" TEXT,"
+                +TEx_amt+" REAL,"
+                +TEx_amtd+" REAL,"
+                +TEx_isHome+" INTEGER,"
+                +"FOREIGN KEY ("+TEx_FID+") REFERENCES "+TABLE_Exp+" ("+TEx_ID+"))";
+        db.execSQL(CREATE_TEx);
     }
 
     @Override
@@ -177,6 +195,7 @@ public class DBHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS "+TABLE_Travel);
         db.execSQL("DROP TABLE IF EXISTS "+TABLE_Day);
         db.execSQL("DROP TABLE IF EXISTS "+TABLE_Activity);
+        db.execSQL("DROP TABLE IF EXISTS "+TABLE_Exp);
         onCreate(db);
     }
 
@@ -415,6 +434,15 @@ public class DBHandler extends SQLiteOpenHelper {
         return expcatList.get(pos);
     }
 
+    public ExpCat getExpCat(int fid, String cat) {
+        List<ExpCat> expcatList = getAllExpCats(fid);
+        for(int i=0;i<expcatList.size();i++){
+            if(expcatList.get(i).category.equals(cat)) return expcatList.get(i);
+        }
+        if(cat.equals("Other")) return getExpCat(fid,0);
+        return getExpCat(fid,"Other");
+    }
+
     public int getExpCatsCount(int fid){
         String countQuery = "SELECT * FROM "+TABLE_ExpCat+" WHERE "+TE_FID+" = "+fid;
         SQLiteDatabase db = this.getReadableDatabase();
@@ -452,6 +480,14 @@ public class DBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_ExpCat, TE_ID+"=?",new String[]{String.valueOf(expcat.id)});
         db.close();
+    }
+
+    public int getExpCatPos(ExpCat expCat){
+        List<ExpCat> expCatList = getAllExpCats(expCat.fid);
+        for(int i=0;i<expCatList.size();i++) {
+            if (expCatList.get(i).id == expCat.id) return i;
+        }
+        return 0;
     }
 
 
@@ -986,6 +1022,133 @@ public class DBHandler extends SQLiteOpenHelper {
     public int getActivityFid(int srno, int day){
         List<Day> dayList = getAllDays(srno);
         return dayList.get(day-1).id;
+    }
+
+
+    /*
+    =============================================================================
+    Table Exp
+    =============================================================================
+     */
+
+    public void addExp(Exp exp){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TEx_ID, exp.id);
+        values.put(TEx_FID, exp.fid);
+        values.put(TEx_title, exp.title);
+        values.put(TEx_amt, exp.Amt);
+        values.put(TEx_amtd, exp.AmtD);
+        values.put(TEx_isHome, exp.isHome);
+
+        db.insert(TABLE_Exp, null, values);
+        db.close();
+    }
+
+    public Exp getExp(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor c = db.query(TABLE_Exp, new String[]{
+                        TEx_ID,TEx_FID,TEx_title,TEx_amt,TEx_amtd,TEx_isHome},
+                TEx_ID+"=?", new String[]{String.valueOf(id)},
+                null,null,null,null);
+
+        if (c!=null) c.moveToFirst();
+
+        Exp exp = new Exp(c.getString(c.getColumnIndexOrThrow(TEx_title)),
+                c.getFloat(c.getColumnIndexOrThrow(TEx_amt)),
+                c.getInt(c.getColumnIndexOrThrow(TEx_isHome)));
+
+        exp.AmtD = c.getFloat(c.getColumnIndexOrThrow(TEx_amtd));
+        exp.id = c.getInt(c.getColumnIndexOrThrow(TEx_ID));
+        exp.fid = c.getInt(c.getColumnIndexOrThrow(TEx_FID));
+
+        return exp;
+    }
+
+    public List<Exp> getAllExps(int fid){
+        List<Exp> expList = new ArrayList<Exp>();
+
+        String selectQuery = "SELECT * FROM "+TABLE_Exp
+                +" WHERE "+TEx_FID+" = "+fid
+                +" ORDER BY "+TEx_ID+" ASC";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+
+        if (c!=null && c.moveToFirst()){
+            do {
+                Exp exp = new Exp(c.getString(c.getColumnIndexOrThrow(TEx_title)),
+                        c.getFloat(c.getColumnIndexOrThrow(TEx_amt)),
+                        c.getInt(c.getColumnIndexOrThrow(TEx_isHome)));
+
+                exp.AmtD = c.getFloat(c.getColumnIndexOrThrow(TEx_amtd));
+                exp.id = c.getInt(c.getColumnIndexOrThrow(TEx_ID));
+                exp.fid = c.getInt(c.getColumnIndexOrThrow(TEx_FID));
+                expList.add(exp);
+            } while (c.moveToNext());
+        }
+
+        return expList;
+    }
+
+    public List<Exp> getAllExps(int srno, int expcat){
+        List<ExpCat> expCatList = getAllExpCats(srno);
+        return getAllExps(expCatList.get(expcat).id);
+    }
+
+    public Exp getExp(int fid, int pos) {
+        List<Exp> expList = getAllExps(fid);
+        return expList.get(pos);
+    }
+
+    public Exp getExp(int srno, int expcat, int pos) {
+        List<Exp> expList = getAllExps(srno,expcat);
+        return expList.get(pos);
+    }
+
+    public int getExpsCount(int fid){
+        String countQuery = "SELECT * FROM "+TABLE_Exp+" WHERE "+TEx_FID+" = "+fid;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int getExpsCount(){
+        String countQuery = "SELECT * FROM "+TABLE_Exp;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int updateExp(Exp exp){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TEx_ID, exp.id);
+        values.put(TEx_FID, exp.fid);
+        values.put(TEx_title, exp.title);
+        values.put(TEx_amt, exp.Amt);
+        values.put(TEx_amtd, exp.AmtD);
+        values.put(TEx_isHome, exp.isHome);
+
+        return db.update(TABLE_Exp,values,TEx_ID+"=?",new String[]{String.valueOf(exp.id)});
+    }
+
+    public void deleteExp(Exp exp){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_Exp, TEx_ID+"=?",new String[]{String.valueOf(exp.id)});
+        db.close();
+    }
+
+    public int getExpFid(int srno, int expcat){
+        List<ExpCat> expCatList = getAllExpCats(srno);
+        return expCatList.get(expcat).id;
     }
 
 }

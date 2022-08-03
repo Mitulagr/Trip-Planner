@@ -257,6 +257,8 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
         if(trip.depDate.length()>1 && trip.retDate.length()>1) trip.nights = getNights(trip.depDate,trip.retDate);
         trip.Hcur = hom.getText().toString();
         trip.Dcur = des.getText().toString();
+        editor.putInt("Current Trip", trip.srno);
+        editor.commit();
         if(!trip.Hcur.equals(trip.Dcur)) {
           trip.isHom = 0;
           trip.rate = savedRate(trip.Dcur.substring(0,3),trip.Hcur.substring(0,3));

@@ -5,14 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="6dp"
-    android:layout_marginBottom="10dp"
     android:layout_marginEnd="6dp"
-    android:background="#BBC1DD"
-    android:paddingStart="10dp"
-    android:paddingTop="10dp"
-    android:paddingEnd="10dp"
-    android:paddingBottom="10dp">
+    android:layout_marginBottom="10dp"
+    android:background="#BBC1DD">
 
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:id="@+id/mainParent"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:padding="10dp"
+      android:clickable="true"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintBottom_toBottomOf="parent">
 
   <TextView
       android:id="@+id/textCatName"
@@ -30,25 +35,15 @@
       android:id="@+id/textCatExpense"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
+      android:layout_marginStart="5dp"
       android:text="₹ 0000000"
       android:textColor="#970000"
       android:textSize="16sp"
       app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toStartOf="@+id/fabAdd"
+      app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toEndOf="@+id/textCatName"
       app:layout_constraintTop_toTopOf="parent" />
 
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAdd"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:clickable="true"
-        app:fabCustomSize="30dp"
-        app:srcCompat="@drawable/ic_baseline_add_24"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
 
   <TextView
       android:id="@+id/textCatExpenseBreakup"
@@ -58,5 +53,33 @@
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintStart_toStartOf="@+id/textCatExpense"
       app:layout_constraintTop_toBottomOf="@+id/textCatExpense" />
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:id="@+id/fabParent"
+      android:paddingVertical="5dp"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:clickable="true"
+      app:layout_constraintStart_toEndOf="@id/mainParent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:layout_constraintBottom_toBottomOf="parent">
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        app:fabCustomSize="30dp"
+        android:layout_marginEnd="24dp"
+        android:clickable="false"
+        app:srcCompat="@drawable/ic_baseline_add_24"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+  </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

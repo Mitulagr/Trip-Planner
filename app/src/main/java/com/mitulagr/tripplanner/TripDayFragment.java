@@ -248,6 +248,7 @@ public class TripDayFragment extends Fragment {
         TextView [] Ap = {Am,Aa,Ae,An};
 
         if(!isNew){
+            addActivity.setText("Update");
             ATitle.setText(act.title);
             ADesc.setText(act.desc);
             for(int i=0;i<4;i++) {
@@ -329,7 +330,12 @@ public class TripDayFragment extends Fragment {
                 switch (menuItem.getItemId()) {
 
                     case R.id.e0:
-
+                        Adapter_ExpenseMain adem = new Adapter_ExpenseMain(getContext(),db.getTrip(id));
+                        ExpCat expCat = db.getExpCat(id,"Activities");
+                        adem.showExpense(expCat.imageId,
+                                db.getExpCatPos(expCat),
+                                new Exp(ada.localDataSet.get(pos).title,0.0f,1),
+                                true);
                         break;
                     case R.id.e1:
                         db.deleteActivity(db.getActivity(id,day,pos));

@@ -1,0 +1,19 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/e1"
+        android:title="🗑️ Delete" />
+
+    <item
+        android:id="@+id/e2"
+        android:title="🖊️ Modify" />
+
+    <item
+        android:id="@+id/e3"
+        android:title="⬆️ Move Up" />
+
+    <item
+        android:id="@+id/e4"
+        android:title="⬇️ Move Down" />
+
+</menu>
