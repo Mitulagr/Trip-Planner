@@ -75,7 +75,7 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
         mItemLongClickListener = longClickListener;
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder  {
 
         private final TextView CatName;
         private final TextView CatExpense;
@@ -93,16 +93,16 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
             CatMain = (View) view.findViewById(R.id.mainParent);
             CatPar = (View) view.findViewById(R.id.fabParent);
 
-            view.setOnLongClickListener(this);
+            //view.setOnLongClickListener(this);
         }
 
-        @Override
-        public boolean onLongClick(View view) {
-            if(mItemLongClickListener!=null){
-                mItemLongClickListener.onItemLongClickListener(view,getAdapterPosition());
-            }
-            return true;
-        }
+//        @Override
+//        public boolean onLongClick(View view) {
+//            if(mItemLongClickListener!=null){
+//                mItemLongClickListener.onItemLongClickListener(view,getAdapterPosition());
+//            }
+//            return true;
+//        }
 
 //        @Override
 //        public boolean onLongClick(View view) {
@@ -159,15 +159,6 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
         viewHolder.CatName.setCompoundDrawablesWithIntrinsicBounds(context.getDrawable(localDataSet.get(position).imageId),null,null,null);
         viewHolder.CatExpense.setText(trip.Hcur.substring(6)+" "+getAmt(localDataSet.get(position).Amt));
 
-//        if(localDataSet.size()!=disp.size()){
-//            for(int i=0;i<localDataSet.size();i++){
-//                if(localDataSet.get(i).id==disp.get(position).id){
-//                    ps = i;
-//                    break;
-//                }
-//            }
-//        }
-
         viewHolder.CatPar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -175,6 +166,16 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
                         db.getExpCatPos(localDataSet.get(position)),
                         new Exp("",0.0f,1),
                         true);
+            }
+        });
+
+        viewHolder.CatMain.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if(mItemLongClickListener!=null){
+                    mItemLongClickListener.onItemLongClickListener(view,position);
+                }
+                return true;
             }
         });
 
@@ -219,6 +220,7 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
     }
 
     String getAmt(float amt){
+        if(amt<0.005f) return "0";
         String a;
         a = String.format("%.0f", amt);
         if(Float.parseFloat(a)==amt || amt>1000.0f) return a;
@@ -295,22 +297,33 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
 
         eTitle.setText(exp.title);
 
+        final int [] pisHome = {exp.isHome};
+
         if(!isNew){
+            eDone.setText("Set");
             float amnt;
             if(exp.isHome==0) {
-                eCurDes.callOnClick();
                 amnt = exp.AmtD;
+                eCurDes.setBackground(context.getDrawable(R.drawable.cur1));
+                eCurHom.setBackground(context.getDrawable(R.drawable.cur2));
+                eCurDes.setTextColor(Color.BLACK);
+                eCurHom.setTextColor(Color.DKGRAY);
+                eSym.setText(trip.Dcur.substring(6));
+                isHom[0] = false;
             }
             else amnt = exp.Amt;
-            amount[0] = String.format("%.0f",amnt);
-            if(Float.parseFloat(amount[0])==amnt || amnt>1000.0f) ;
+            if(amnt<0.005f) amount[0] = "0";
             else{
-                amount[0] = String.format("%.1f",amnt);
-                dot[0] = 1;
-                if(Float.parseFloat(amount[0])==amnt || amnt>100.0f) ;
-                else {
-                    amount[0] = String.format("%.2f",amnt);
-                    dot[0] = 2;
+                amount[0] = String.format("%.0f",amnt);
+                if(Float.parseFloat(amount[0])==amnt || amnt>1000.0f) ;
+                else{
+                    amount[0] = String.format("%.1f",amnt);
+                    dot[0] = 1;
+                    if(Float.parseFloat(amount[0])==amnt || amnt>100.0f) ;
+                    else {
+                        amount[0] = String.format("%.2f",amnt);
+                        dot[0] = 2;
+                    }
                 }
             }
             eAmt.setText(amount[0]);
@@ -323,7 +336,6 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
                 eCurDes.setBackground(context.getDrawable(R.drawable.cur2));
                 eCurHom.setTextColor(Color.BLACK);
                 eCurDes.setTextColor(Color.DKGRAY);
-                // TODO: Set Symbol to Hom
                 eSym.setText(trip.Hcur.substring(6));
                 isHom[0] = true;
             }
@@ -336,7 +348,6 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
                 eCurHom.setBackground(context.getDrawable(R.drawable.cur2));
                 eCurDes.setTextColor(Color.BLACK);
                 eCurHom.setTextColor(Color.DKGRAY);
-                // TODO: Set Symbol to Des
                 eSym.setText(trip.Dcur.substring(6));
                 isHom[0] = false;
             }
@@ -355,6 +366,19 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
 
                 //Exp exp = new Exp(eTitle.getText().toString(),amt,isHom[0]?1:0);
                 exp.title = eTitle.getText().toString();
+
+                if(!isNew && pisHome[0]==0){
+                    trip.exp = trip.exp - exp.Amt;
+                    trip.Dexp = trip.Dexp - exp.AmtD;
+                    expcat.Amt = expcat.Amt - exp.Amt;
+                    expcat.DesAmt = expcat.DesAmt - exp.AmtD;
+                }
+                if(!isNew && pisHome[0]==1){
+                    trip.exp = trip.exp - exp.Amt;
+                    trip.Hexp = trip.Hexp - exp.Amt;
+                    expcat.Amt = expcat.Amt - exp.Amt;
+                    expcat.homAmt = expcat.homAmt - exp.Amt;
+                }
 
                 if(isHom[0]) {
                     trip.exp = trip.exp + amt;

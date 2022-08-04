@@ -9,12 +9,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -39,6 +43,7 @@ public class ExpActivity extends AppCompatActivity {
     }
 
     private Button exit, add;
+    ImageButton delete, modify;
     private AdView mAdView;
     private Dialog curd;
     private RecyclerView Exps;
@@ -73,6 +78,8 @@ public class ExpActivity extends AppCompatActivity {
         amt = findViewById(R.id.TotalExpense);
         amth = findViewById(R.id.textViewEh);
         amtd = findViewById(R.id.textViewEd);
+        delete = findViewById(R.id.deletetrip2);
+        modify = findViewById(R.id.modifydayplace2);
 
         amt.setText(trip.Hcur.substring(6)+" "+String.valueOf(getAmt(expCat.Amt)));
         amth.setText(trip.Hcur.substring(0,3)+" : "+trip.Hcur.substring(6)+" "+String.valueOf(getAmt(expCat.homAmt)));
@@ -153,17 +160,62 @@ public class ExpActivity extends AppCompatActivity {
             }
         });
 
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                db.deleteExpCat(expCat);
+                finish();
+            }
+        });
 
-        /*
-        =============================================================================
-        Amount
-        =============================================================================
-         */
-
+        modify.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                editCategory();
+            }
+        });
 
     }
 
+    void editCategory(){
+        Dialog curd = new Dialog(this);
+        curd.setContentView(R.layout.editdaycity);
+        curd.getWindow();
+        curd.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        curd.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        curd.show();
+
+        TextView Title = (TextView) curd.findViewById(R.id.textViewed);
+        EditText Place = (EditText) curd.findViewById(R.id.editTexted);
+        Button Ok = (Button) curd.findViewById(R.id.buttoned);
+
+        Title.setText("Category Name");
+
+        Place.setText(expCat.category);
+
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(@NonNull InitializationStatus initializationStatus) {
+            }
+        });
+
+        AdView mAdEd = curd.findViewById(R.id.adEd);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdEd.loadAd(adRequest);
+
+        Ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                expCat.category = Place.getText().toString();
+                db.updateExpCat(expCat);
+                cat.setText(expCat.category);
+                curd.dismiss();
+            }
+        });
+    }
+
     String getAmt(float amt){
+        if(amt<0.005f) return "0";
         String a;
         a = String.format("%.0f", amt);
         if(Float.parseFloat(a)==amt || amt>1000.0f) return a;
@@ -175,7 +227,7 @@ public class ExpActivity extends AppCompatActivity {
     void showEdit(View view, int pos){
         PopupMenu popup = new PopupMenu(ExpActivity.this,view);
         popup.getMenuInflater()
-                .inflate(R.menu.edit1, popup.getMenu());
+                .inflate(R.menu.edit2, popup.getMenu());
 
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
 
@@ -187,6 +239,7 @@ public class ExpActivity extends AppCompatActivity {
                     case R.id.e1:
                         Exp exp = db.getExp(id,expcat,pos);
                         expCat.Amt = expCat.Amt - exp.Amt;
+                        trip.exp = trip.exp - exp.Amt;
                         if(exp.isHome==0){
                             expCat.DesAmt = expCat.DesAmt - exp.AmtD;
                             trip.Dexp = trip.Dexp - exp.AmtD;
@@ -195,41 +248,54 @@ public class ExpActivity extends AppCompatActivity {
                             expCat.homAmt = expCat.homAmt - exp.Amt;
                             trip.Hexp = trip.Hexp - exp.Amt;
                         }
-                        trip.exp = trip.exp - expCat.Amt;
-                        db.deleteExp(db.getExp(id,expcat,pos));
+                        db.deleteExp(exp);
+                        db.updateExpCat(expCat);
+                        db.updateTrip(trip);
                         ade.localDataSet = db.getAllExps(id,expcat);
                         ade.notifyDataSetChanged();
-                        if (mDataChangeListener != null) {
-                            mDataChangeListener.onItemDataChangeListener();
-                        }
-                        //activityHelpUpdate();
+                        amt.setText(trip.Hcur.substring(6)+" "+getAmt(expCat.Amt));
+                        amth.setText(trip.Hcur.substring(0,3)+" : "+trip.Hcur.substring(6)+" "+getAmt(expCat.homAmt));
+                        amtd.setText(trip.Dcur.substring(0,3)+" : "+trip.Dcur.substring(6)+" "+getAmt(expCat.DesAmt));
                         break;
                     case R.id.e2:
-                        //showActivity(db.getActivity(id,day,pos),false);
+                        Adapter_ExpenseMain adem = new Adapter_ExpenseMain(ExpActivity.this,trip);
+                        adem.showExpense(expCat.imageId,expcat,db.getExp(id,expcat,pos),false);
+                        adem.setOnDataChangeListener(new Adapter_ExpenseMain.OnDataChangeListener() {
+                            @Override
+                            public void onDataChanged() {
+                                setResult(1,new Intent());
+                                ade.localDataSet = db.getAllExps(id,expcat);
+                                ade.notifyDataSetChanged();
+                                expCat = db.getExpCat(id,expcat);
+                                amt.setText(trip.Hcur.substring(6)+" "+getAmt(expCat.Amt));
+                                amth.setText(trip.Hcur.substring(0,3)+" : "+trip.Hcur.substring(6)+" "+getAmt(expCat.homAmt));
+                                amtd.setText(trip.Dcur.substring(0,3)+" : "+trip.Dcur.substring(6)+" "+getAmt(expCat.DesAmt));
+                            }
+                        });
                         break;
                     case R.id.e3:
-//                        if(pos==0) break;
-//                        Activity a1 = db.getActivity(id,day,pos-1);
-//                        Activity a2 = db.getActivity(id,day,pos);
-//                        int temp = a1.id;
-//                        a1.id = a2.id;
-//                        a2.id = temp;
-//                        db.updateActivity(a1);
-//                        db.updateActivity(a2);
-//                        ada.localDataSet = db.getAllActivities(id,day);
-//                        ada.notifyDataSetChanged();
+                        if(pos==0) break;
+                        Exp e1 = db.getExp(id,expcat,pos-1);
+                        Exp e2 = db.getExp(id,expcat,pos);
+                        int temp = e1.id;
+                        e1.id = e2.id;
+                        e2.id = temp;
+                        db.updateExp(e1);
+                        db.updateExp(e2);
+                        ade.localDataSet = db.getAllExps(id,expcat);
+                        ade.notifyDataSetChanged();
                         break;
                     case R.id.e4:
-//                        if(pos== ada.getItemCount()-1) break;
-//                        Activity a3 = db.getActivity(id,day,pos);
-//                        Activity a4 = db.getActivity(id,day,pos+1);
-//                        int temp1 = a3.id;
-//                        a3.id = a4.id;
-//                        a4.id = temp1;
-//                        db.updateActivity(a3);
-//                        db.updateActivity(a4);
-//                        ada.localDataSet = db.getAllActivities(id,day);
-//                        ada.notifyDataSetChanged();
+                        if(pos== ade.getItemCount()-1) break;
+                        Exp e3 = db.getExp(id,expcat,pos);
+                        Exp e4 = db.getExp(id,expcat,pos+1);
+                        int temp1 = e3.id;
+                        e3.id = e4.id;
+                        e4.id = temp1;
+                        db.updateExp(e3);
+                        db.updateExp(e4);
+                        ade.localDataSet = db.getAllExps(id,expcat);
+                        ade.notifyDataSetChanged();
                         break;
                 }
 

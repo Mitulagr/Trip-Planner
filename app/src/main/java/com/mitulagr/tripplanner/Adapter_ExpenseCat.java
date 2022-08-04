@@ -95,6 +95,7 @@ public class Adapter_ExpenseCat extends RecyclerView.Adapter<Adapter_ExpenseCat.
     }
 
     String getAmt(float amt){
+        if(amt<0.005f) return "0";
         String a;
         a = String.format("%.0f", amt);
         if(Float.parseFloat(a)==amt || amt>1000.0f) return a;
