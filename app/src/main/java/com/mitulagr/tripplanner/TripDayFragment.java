@@ -23,6 +23,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -60,8 +61,6 @@ public class TripDayFragment extends Fragment {
         if (getArguments() != null) {
             day = getArguments().getInt(DAY);
         }
-
-
     }
 
     private TextView placeName, dayDate, dayDay, description, activityHelp;
@@ -72,6 +71,17 @@ public class TripDayFragment extends Fragment {
     private int id;
     private DBHandler db;
     private Adapter_Activity ada;
+    Day d;
+
+    public void refresh(){
+        d =  db.getDay(id,day-1);
+        placeName.setText(d.city);
+        dayDate.setText(dispDate(d.date));
+        dayDay.setText(d.day);
+        description.setText(d.des);
+        ada.localDataSet = db.getAllActivities(id,day);
+        ada.notifyDataSetChanged();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -95,7 +105,7 @@ public class TripDayFragment extends Fragment {
         id = sp.getInt("Current Trip", 0);
         db = new DBHandler(getContext());
 
-        Day d = db.getDay(id,day-1);
+        d = db.getDay(id,day-1);
         placeName.setText(d.city);
         dayDate.setText(dispDate(d.date));
         dayDay.setText(d.day);
@@ -303,7 +313,7 @@ public class TripDayFragment extends Fragment {
                 act.img = phaseImgs[phase[0]];
 
                 if(isNew){
-                    act.id = db.getActivitiesCount();
+                    act.id = db.getActivityNewId();
                     act.fid = db.getActivityFid(id,day);
                     db.addActivity(act);
                 }

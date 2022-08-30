@@ -31,6 +31,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -46,11 +47,14 @@ import com.google.android.gms.ads.initialization.OnInitializationCompleteListene
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
@@ -64,6 +68,8 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
   private Dialog curd;
   Trip trip;
   DBHandler db;
+  int id;
+  boolean isNew;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -86,12 +92,25 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
     mAdView.loadAd(adRequest);
 
     placename = (EditText) findViewById(R.id.placename);
+    create = findViewById(R.id.create_trip);
 
-        /*
-        =============================================================================
-        Cancel
-        =============================================================================
-         */
+    db = new DBHandler(this);
+
+    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+    id = sp.getInt("Current Trip", -1);
+    if(id>=0){
+      trip = db.getTrip(id);
+      create.setText("Modify Trip");
+      isNew = false;
+      placename.setText(trip.place);
+    }
+    else isNew = true;
+
+    /*
+    =============================================================================
+    Cancel
+    =============================================================================
+     */
 
     cancel = (Button) findViewById(R.id.cancel);
 
@@ -104,11 +123,11 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
     });
 
 
-        /*
-        =============================================================================
-        Image Selector
-        =============================================================================
-         */
+    /*
+    =============================================================================
+    Image Selector
+    =============================================================================
+     */
 
     imv[0] = (ImageView) findViewById(R.id.imageView);
     imv[1] = (ImageView) findViewById(R.id.imageView3);
@@ -117,11 +136,21 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
     imv[4] = (ImageView) findViewById(R.id.imageView6);
     imv[5] = (ImageView) findViewById(R.id.imageView7);
 
+    int tI = 0;
+    if(!isNew){
+      if(trip.imageId == R.drawable.t2) tI = 1;
+      if(trip.imageId == R.drawable.t3) tI = 2;
+      if(trip.imageId == R.drawable.t4) tI = 3;
+      if(trip.imageId == R.drawable.t5) tI = 4;
+      if(trip.imageId == R.drawable.t6) tI = 5;
+    }
+
     Drawable[] layers = new Drawable[2];
-    layers[0] = imv[0].getDrawable();
+    layers[0] = imv[tI].getDrawable();
     layers[1] = getDrawable(R.drawable.check2);
     LayerDrawable layerDrawable = new LayerDrawable(layers);
-    imv[0].setImageDrawable(layerDrawable);
+    imv[tI].setImageDrawable(layerDrawable);
+    selectedImage = tI;
 
     for (int i = 0; i < 6; i++) {
 
@@ -144,17 +173,32 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
     }
 
 
-        /*
-        =============================================================================
-        Date
-        =============================================================================
-         */
+    /*
+    =============================================================================
+    Date
+    =============================================================================
+     */
 
     depret[0] = 0;
     depret[1] = 0;
 
     dep = (Button) findViewById(R.id.depdate);
     ret = (Button) findViewById(R.id.retdate);
+
+    if(!isNew){
+      if(trip.depDate.length()>1){
+        dep.setText(trip.depDate);
+        depret[0] = Integer.parseInt(trip.depDate.substring(0,2));
+        depret[2] = Integer.parseInt(trip.depDate.substring(3,5));
+        depret[4] = Integer.parseInt(trip.depDate.substring(6));
+      }
+      if(trip.retDate.length()>1){
+        ret.setText(trip.retDate);
+        depret[1] = Integer.parseInt(trip.retDate.substring(0,2));
+        depret[3] = Integer.parseInt(trip.retDate.substring(3,5));
+        depret[5] = Integer.parseInt(trip.retDate.substring(6));
+      }
+    }
 
     dep.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -177,21 +221,26 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
     });
 
 
-        /*
-        =============================================================================
-        Currency
-        =============================================================================
-         */
+    /*
+    =============================================================================
+    Currency
+    =============================================================================
+     */
 
 
     hom = (Button) findViewById(R.id.homcur);
     des = (Button) findViewById(R.id.descur);
 
-    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-    String temp = sp.getString("Home Currency", "");
-    if(temp.length()>1){
-      hom.setText(temp);
-      des.setText(temp);
+    if(!isNew){
+      hom.setText(trip.Hcur);
+      des.setText(trip.Dcur);
+    }
+    else{
+      String temp = sp.getString("Home Currency", "");
+      if(temp.length()>1){
+        hom.setText(temp);
+        des.setText(temp);
+      }
     }
 
     hom.setOnClickListener(new View.OnClickListener() {
@@ -210,13 +259,11 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
     });
 
 
-        /*
-        =============================================================================
-        Create Trip
-        =============================================================================
-         */
-
-    create = findViewById(R.id.create_trip);
+    /*
+    =============================================================================
+    Create Trip
+    =============================================================================
+     */
 
     create.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -248,12 +295,21 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
         editor.putString("Home Currency", hom.getText().toString());
         editor.commit();
 
-        //Exchange(desCode,homCode,addtrip.this);
-        db = new DBHandler(view.getContext());
-        trip = new Trip(db.getTripsCount(),placename.getText().toString(),getImg());
-        //trip.rate = Exchange(desCode,homCode,view.getContext());
         trip.depDate = dep.getText().toString();
         trip.retDate = ret.getText().toString();
+        if(isNew) trip = new Trip(db.getTripsNewId(),placename.getText().toString(),getImg());
+        else {
+          trip.place = placename.getText().toString();
+          trip.imageId = getImg();
+          List<Day> DList = db.getAllDays(trip.srno);
+          Day Dy;
+          for(int i=0;i<DList.size();i++){
+            Dy = DList.get(i);
+            Dy.date = getNextDate(trip.depDate,i);
+            Dy.day = getCurDay(Dy.date);
+            db.updateDay(Dy);
+          }
+        }
         if(trip.depDate.length()>1 && trip.retDate.length()>1) trip.nights = getNights(trip.depDate,trip.retDate);
         trip.Hcur = hom.getText().toString();
         trip.Dcur = des.getText().toString();
@@ -262,12 +318,14 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
         if(!trip.Hcur.equals(trip.Dcur)) {
           trip.isHom = 0;
           trip.rate = savedRate(trip.Dcur.substring(0,3),trip.Hcur.substring(0,3));
-          db.addTrip(trip);
+          if(isNew) db.addTrip(trip);
+          else db.updateTrip(trip);
           startActivity(new Intent(addtrip.this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
           Exchange(trip.Dcur.substring(0,3).toLowerCase(),trip.Hcur.substring(0,3).toLowerCase(),view.getContext());
         }
         else {
-          db.addTrip(trip);
+          if(isNew) db.addTrip(trip);
+          else db.updateTrip(trip);
           startActivity(new Intent(addtrip.this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
           finish();
         }
@@ -276,6 +334,43 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
 
   }
 
+  public static String getNextDate(String curDate, int inc) {
+    if(curDate.length()<1) return "";
+    final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+    final Date date;
+    try {
+      date = format.parse(curDate);
+      final Calendar calendar = Calendar.getInstance();
+      calendar.setTime(date);
+      calendar.add(Calendar.DAY_OF_YEAR, inc);
+      return format.format(calendar.getTime());
+    } catch (java.text.ParseException e) {
+      e.printStackTrace();
+    }
+    return "";
+  }
+
+  public static String getCurDay(String curDate) {
+    if(curDate.length()<1) return "";
+    final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+    final Date date;
+    try {
+      date = format.parse(curDate);
+      final Calendar calendar = Calendar.getInstance();
+      calendar.setTime(date);
+      int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+      if(dayOfWeek==Calendar.SUNDAY) return "Sunday";
+      if(dayOfWeek==Calendar.MONDAY) return "Monday";
+      if(dayOfWeek==Calendar.TUESDAY) return "Tuesday";
+      if(dayOfWeek==Calendar.WEDNESDAY) return "Wednesday";
+      if(dayOfWeek==Calendar.THURSDAY) return "Thursday";
+      if(dayOfWeek==Calendar.FRIDAY) return "Friday";
+      return "Saturday";
+    } catch (java.text.ParseException e) {
+      e.printStackTrace();
+    }
+    return "";
+  }
 
   private void showDatePicker(int day, int month, int year) {
     if(day==0){

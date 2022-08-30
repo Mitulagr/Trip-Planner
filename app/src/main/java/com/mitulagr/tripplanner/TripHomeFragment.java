@@ -1,7 +1,9 @@
 package com.mitulagr.tripplanner;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -165,14 +167,32 @@ public class TripHomeFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(getActivity(), addtrip.class));
-                //TODO
             }
         });
 
         deleteTrip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
+                alert.setTitle("Delete Trip");
+                alert.setMessage("All Expenses, Information related to the trip will be deleted. Are you sure you want to delete it?");
+                alert.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putInt("Current Trip", -1);
+                        editor.commit();
+                        db.deleteTrip(trip);
+                        startActivity(new Intent(getContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                        getActivity().finish();
+                    }
+                });
+                alert.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                alert.show();
             }
         });
 
@@ -302,7 +322,7 @@ public class TripHomeFragment extends Fragment {
 
         boolean [] isNew = {false};
         if(hotel.nights==-1){
-            hotel.id = db.getHotelsCount();
+            hotel.id = db.getHotelNewId();
             hotel.fid = id;
             isNew[0] = true;
         }
@@ -520,7 +540,7 @@ public class TripHomeFragment extends Fragment {
                 travel.to_time = tToShowTime.getText().toString();
 
                 if(isNew){
-                    travel.id = db.getTravelsCount();
+                    travel.id = db.getTravelNewId();
                     travel.fid = id;
                     db.addTravel(travel);
                 }

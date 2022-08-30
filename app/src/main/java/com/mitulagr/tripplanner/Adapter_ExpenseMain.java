@@ -1,5 +1,6 @@
 package com.mitulagr.tripplanner;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -154,7 +155,7 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, final int position) {
+    public void onBindViewHolder(ViewHolder viewHolder, @SuppressLint("RecyclerView") final int position) {
         viewHolder.CatName.setText("  "+localDataSet.get(position).category);
         viewHolder.CatName.setCompoundDrawablesWithIntrinsicBounds(context.getDrawable(localDataSet.get(position).imageId),null,null,null);
         viewHolder.CatExpense.setText(trip.Hcur.substring(6)+" "+getAmt(localDataSet.get(position).Amt));
@@ -255,6 +256,8 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
         curd.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         curd.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         curd.show();
+
+        trip = db.getTrip(trip.srno);
 
         Button eCurHom = (Button) curd.findViewById(R.id.ecurhom);
         Button eCurDes = (Button) curd.findViewById(R.id.ecurdes);
@@ -401,7 +404,7 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
                 db.updateExpCat(expcat);
                 db.updateTrip(trip);
                 if(isNew){
-                    exp.id = db.getExpsCount();
+                    exp.id = db.getExpNewId();
                     exp.fid = expcat.id;
                     db.addExp(exp);
                 }

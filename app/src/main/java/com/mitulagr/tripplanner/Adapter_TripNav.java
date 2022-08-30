@@ -13,7 +13,16 @@ public class Adapter_TripNav extends RecyclerView.Adapter<Adapter_TripNav.ViewHo
     int n;
     int selected = -1;
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public interface LongClickListener{
+        public void onItemLongClickListener(View view, int position);
+    }
+
+    LongClickListener mItemLongClickListener;
+    public void setOnItemLongClickListener(Adapter_TripNav.LongClickListener longClickListener){
+        mItemLongClickListener = longClickListener;
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
 
         private final TextView day;
         private final View div;
@@ -24,6 +33,15 @@ public class Adapter_TripNav extends RecyclerView.Adapter<Adapter_TripNav.ViewHo
 
             day = (TextView) view.findViewById(R.id.textViewDayNav);
             div = (View) view.findViewById(R.id.divider6);
+            view.setOnLongClickListener(this);
+        }
+
+        @Override
+        public boolean onLongClick(View view) {
+            if (mItemLongClickListener != null) {
+                mItemLongClickListener.onItemLongClickListener(view, getAdapterPosition());
+            }
+            return true;
         }
 
     }

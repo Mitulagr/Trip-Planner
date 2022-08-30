@@ -13,6 +13,7 @@
         android:theme="@style/Theme.TripPlanner">
         <activity
             android:name=".ExpActivity"
+            android:screenOrientation="portrait"
             android:exported="false" />
 
         <meta-data
@@ -21,13 +22,16 @@
 
         <activity
             android:name=".PageMain"
+            android:screenOrientation="portrait"
             android:exported="true" />
         <activity
             android:name=".addtrip"
+            android:screenOrientation="portrait"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton sort;
     private Adapter_Trips adt;
 
+    // TODO: Handle Rotates
     // TODO: Save data onPause etc. also
     // TODO: Save updated sort trip list
     // TODO: Add del/archive menu for trips on long press or image button click
@@ -92,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
         //Trip [] tripList = {trip1,trip2,trip3,trip4,trip5,trip6,trip1,trip2};
         //Trip [] tripList = {trip1};
 
-
         adt = new Adapter_Trips(this);
 
         trips.setAdapter(adt);
@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view, int position) {
                 SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 SharedPreferences.Editor editor = sp.edit();
-                editor.putInt("Current Trip", adt.db.getTrip(position).srno);
+                editor.putInt("Current Trip", adt.localDataSet.get(position).srno);
                 editor.commit();
                 Intent intent = new Intent(MainActivity.this, PageMain.class);
                 startActivity(intent);
@@ -113,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onLongClick(View view, int position) {
-                Toast.makeText(MainActivity.this, "Long Clicked", Toast.LENGTH_SHORT).show();
             }
         }));
 
@@ -128,10 +127,8 @@ public class MainActivity extends AppCompatActivity {
         add_trip.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO: Verify this activity starting method
                 Intent intent = new Intent(MainActivity.this, addtrip.class);
                 startActivity(intent);
-                //finish();
             }
         });
 
@@ -154,16 +151,38 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public boolean onMenuItemClick(MenuItem menuItem) {
 
+                        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                        SharedPreferences.Editor editor = sp.edit();
+
                         switch (menuItem.getItemId()) {
 
                             case R.id.sort1:
-
+                                adt.filter(0);
+                                editor.putInt("Sort", 0);
                                 break;
-
-
+                            case R.id.sort2:
+                                adt.filter(1);
+                                editor.putInt("Sort", 1);
+                                break;
+                            case R.id.sort3:
+                                adt.filter(2);
+                                editor.putInt("Sort", 2);
+                                break;
+                            case R.id.sort4:
+                                adt.filter(3);
+                                editor.putInt("Sort", 3);
+                                break;
+                            case R.id.sort5:
+                                adt.filter(4);
+                                editor.putInt("Sort", 4);
+                                break;
+                            case R.id.sort6:
+                                adt.filter(5);
+                                editor.putInt("Sort", 5);
+                                break;
                         }
 
-                        Toast.makeText(MainActivity.this, "You Clicked : " + menuItem.getTitle(), Toast.LENGTH_SHORT).show();
+                        editor.commit();
 
                         return true;
                     }

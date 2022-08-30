@@ -6,7 +6,9 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -88,15 +90,15 @@ public class ExpActivity extends AppCompatActivity {
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(@NonNull InitializationStatus initializationStatus) {
-
             }
         });
 
         //TODO: Make trip with default trip and in exchange function update it if it works otherwise let default remain
 
         mAdView = findViewById(R.id.adExp2);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+        mAdView.setVisibility(View.GONE);
+//        AdRequest adRequest = new AdRequest.Builder().build();
+//        mAdView.loadAd(adRequest);
 
         /*
         =============================================================================
@@ -163,8 +165,21 @@ public class ExpActivity extends AppCompatActivity {
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                db.deleteExpCat(expCat);
-                finish();
+                AlertDialog.Builder alert = new AlertDialog.Builder(ExpActivity.this);
+                alert.setTitle("Delete Category "+expCat.category);
+                alert.setMessage("All Expenses of Category - "+expCat.category+" will be lost. Are you sure you want to delete it?");
+                alert.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        db.deleteExpCat(expCat);
+                        finish();
+                    }
+                });
+                alert.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                alert.show();
             }
         });
 
@@ -208,7 +223,7 @@ public class ExpActivity extends AppCompatActivity {
             public void onClick(View view) {
                 expCat.category = Place.getText().toString();
                 db.updateExpCat(expCat);
-                cat.setText(expCat.category);
+                cat.setText("  "+expCat.category);
                 curd.dismiss();
             }
         });

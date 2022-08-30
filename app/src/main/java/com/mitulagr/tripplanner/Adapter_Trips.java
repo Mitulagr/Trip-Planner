@@ -1,6 +1,8 @@
 package com.mitulagr.tripplanner;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +13,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class Adapter_Trips extends RecyclerView.Adapter<Adapter_Trips.ViewHolder> {
 
-    //private List<Trip> localDataSet;
+    List<Trip> localDataSet;
     DBHandler db;
 
     /**
@@ -46,7 +50,9 @@ public class Adapter_Trips extends RecyclerView.Adapter<Adapter_Trips.ViewHolder
 
     public Adapter_Trips(Context context) {
         db = new DBHandler(context);
-        //localDataSet = db.getAllTrips();
+        localDataSet = db.getAllTrips();
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        filter(sp.getInt("Sort", 2));
     }
 
     // Create new views (invoked by the layout manager)
@@ -74,7 +80,7 @@ public class Adapter_Trips extends RecyclerView.Adapter<Adapter_Trips.ViewHolder
 //        if(position==7) viewHolder.itemView.setBackgroundResource(R.drawable.rounded6);
 //        if(position==0) viewHolder.itemView.setBackgroundResource(R.drawable.rounded7); //mountain
 //        if(position==6) viewHolder.itemView.setBackgroundResource(R.drawable.rounded8);
-        Trip trip = db.getTrip(position);
+        Trip trip = localDataSet.get(position);
         viewHolder.itemView.setBackgroundResource(trip.bg);
         viewHolder.place.setText(trip.place);
         viewHolder.date.setText(dispDate(trip.depDate));
@@ -87,6 +93,51 @@ public class Adapter_Trips extends RecyclerView.Adapter<Adapter_Trips.ViewHolder
     @Override
     public int getItemCount() {
         return db.getTripsCount();
+    }
+
+    void filter(int t){
+        Collections.sort(localDataSet, new Comparator<Trip>(){
+            public int compare(Trip t1, Trip t2){
+                if(t1.srno == t2.srno) return 0;
+
+                if(t==2) return t1.srno<t2.srno ? -1 : 1;
+                if(t==3) return t1.srno>t2.srno ? -1 : 1;
+
+                int cmp;
+
+                if(t==0) cmp = 1;
+                else cmp = -1;
+
+                if(t<2){
+                    if(t1.depDate.length()<2 && t2.depDate.length()<2) return t1.srno<t2.srno ? -1*cmp : cmp;
+                    if(t1.depDate.length()<2) return cmp;
+                    if(t2.depDate.length()<2) return -1*cmp;
+
+                    int y1 = Integer.parseInt(t1.depDate.substring(6));
+                    int y2 = Integer.parseInt(t2.depDate.substring(6));
+
+                    if(y1<y2) return -1*cmp;
+                    if(y2<y1) return cmp;
+
+                    y1 = Integer.parseInt(t1.depDate.substring(3,5));
+                    y2 = Integer.parseInt(t2.depDate.substring(3,5));
+
+                    if(y1<y2) return -1*cmp;
+                    if(y2<y1) return cmp;
+
+                    y1 = Integer.parseInt(t1.depDate.substring(0,2));
+                    y2 = Integer.parseInt(t2.depDate.substring(0,2));
+
+                    if(y1<y2) return -1*cmp;
+                    else return cmp;
+                }
+
+                cmp = t1.place.compareToIgnoreCase(t2.place);
+                if(t==4) return cmp<0 ? -1 : 1;
+                else return cmp<0 ? 1 : -1;
+            }
+        });
+        notifyDataSetChanged();
     }
 
     String dispDate(String d){

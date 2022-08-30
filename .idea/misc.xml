@@ -3,19 +3,27 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/drawable/roundedw.xml" value="0.246" />
+        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/activity_addtrip.xml" value="0.4" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/activity_exp.xml" value="0.4" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/activity_main.xml" value="0.22826086956521738" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/activity_page_main.xml" value="0.22780797101449277" />
+        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/addactivity.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/addexpense.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/addnote.xml" value="0.253125" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/design_activity.xml" value="0.22780797101449277" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/design_exp.xml" value="0.4" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/design_expensemain.xml" value="0.536" />
-        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/fragment_exp.xml" value="0.22826086956521738" />
+        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/design_notes.xml" value="0.5871097683786506" />
+        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/fragment_exp.xml" value="0.42" />
+        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/fragment_notes.xml" value="0.264" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/fragment_trip.xml" value="0.22780797101449277" />
-        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/fragment_trip_day.xml" value="0.22780797101449277" />
+        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/fragment_trip_day.xml" value="0.4" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/layout/fragment_trip_home.xml" value="0.22780797101449277" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/menu/edit1.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/menu/edit2.xml" value="0.253125" />
+        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/menu/edit3.xml" value="0.253125" />
+        <entry key="..\:/Users/Mitul Agrawal/AndroidStudioProjects/Trip-Planner/app/src/main/res/menu/sort_menu.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/iammr/AndroidStudioProjects/TripPlanner/app/src/main/res/drawable-v24/rounded2.xml" value="0.3828125" />
         <entry key="..\:/Users/iammr/AndroidStudioProjects/TripPlanner/app/src/main/res/drawable/afternoon1.xml" value="0.3828125" />
         <entry key="..\:/Users/iammr/AndroidStudioProjects/TripPlanner/app/src/main/res/drawable/am.xml" value="0.3828125" />

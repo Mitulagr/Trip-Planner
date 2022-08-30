@@ -1,5 +1,6 @@
 package com.mitulagr.tripplanner;
 
+import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
@@ -10,9 +11,11 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,6 +79,7 @@ public class TripFragment extends Fragment {
     private View navDiv;
     private ViewPager2 pager;
     private Adapter_TripNav adn;
+    private Adapter_ViewPager pagerAdapter;
 
     private int id;
     private DBHandler db;
@@ -98,6 +102,11 @@ public class TripFragment extends Fragment {
 
         days = db.getDaysCount(id);
 
+        /*
+        =============================================================================
+        Days Adapter
+        =============================================================================
+         */
 
 //        TripHomeFragment frag = new TripHomeFragment();
 //        androidx.fragment.app.FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
@@ -122,7 +131,7 @@ public class TripFragment extends Fragment {
         }
 
         pager = rootView.findViewById(R.id.trip_container);
-        Adapter_ViewPager pagerAdapter = new Adapter_ViewPager(getActivity().getSupportFragmentManager(), getLifecycle(), fragmentList);
+        pagerAdapter = new Adapter_ViewPager(getActivity().getSupportFragmentManager(), getLifecycle(), fragmentList);
         pager.setAdapter(pagerAdapter);
 
         if (pager.getChildAt(0) instanceof RecyclerView) pager.getChildAt(0).setOverScrollMode(View.OVER_SCROLL_NEVER);
@@ -138,6 +147,13 @@ public class TripFragment extends Fragment {
         adn = new Adapter_TripNav(days);
 
         navDay.setAdapter(adn);
+
+        adn.setOnItemLongClickListener(new Adapter_TripNav.LongClickListener() {
+            @Override
+            public void onItemLongClickListener(View view, int position) {
+                showEdit(view,position);
+            }
+        });
 
         navDay.addOnItemTouchListener(new RecyclerTouchListener(getActivity(), navDay, new RecyclerTouchListener.ClickListener() {
             @Override
@@ -174,13 +190,20 @@ public class TripFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Day day = new Day();
-                Day prev = db.getDay(id,days-1);
-                day.city = prev.city;
-                day.date = getNextDate(prev.date,1);
+                if(days>0){
+                    Day prev = db.getDay(id,days-1);
+                    day.city = prev.city;
+                    day.date = getNextDate(prev.date,1);
+                }
+                else{
+                    Trip t = db.getTrip(id);
+                    day.city = t.place;
+                    day.date = getNextDate(t.depDate,0);
+                }
                 day.day = getCurDay(day.date);
                 day.des = "";
-                day.fid = prev.fid;
-                day.id = db.getDaysCount();
+                day.fid = id;
+                day.id = db.getDayNewId();
                 db.addDay(day);
                 fragmentList.add(TripDayFragment.newInstance(days+1));
                 pagerAdapter.fragmentList = fragmentList;
@@ -272,6 +295,121 @@ public class TripFragment extends Fragment {
             e.printStackTrace();
         }
         return "";
+    }
+
+    void showEdit(View view, int pos) {
+        PopupMenu popup = new PopupMenu(getActivity(), view);
+        popup.getMenuInflater()
+                .inflate(R.menu.edit3, popup.getMenu());
+
+        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+
+                switch (menuItem.getItemId()) {
+
+                    case R.id.e1:
+                        Day Dpos = db.getDay(id,pos);
+                        List<Activity> AList = db.getAllActivities(Dpos.id);
+                        db.deleteDay(Dpos);
+                        for(int i=0;i<AList.size();i++) db.deleteActivity(AList.get(i));
+                        adn.n--;
+                        days--;
+                        List<Day> DList= db.getAllDays(id);
+                        for(int i = DList.size()-1;i>pos;i--){
+                            DList.get(i).date = DList.get(i-1).date;
+                            DList.get(i).day = DList.get(i-1).day;
+                            db.updateDay(DList.get(i));
+                        }
+                        if(DList.size()>0 && pos<DList.size()){
+                            DList.get(pos).date = Dpos.date;
+                            DList.get(pos).day = Dpos.day;
+                            db.updateDay(DList.get(pos));
+                        }
+                        List<Fragment> FList = new ArrayList<>();
+                        FList.add(new TripHomeFragment());
+                        for(int i=1; i<=days; i++) {
+                            FList.add(TripDayFragment.newInstance(i));
+                        }
+                        pagerAdapter.fragmentList = FList;
+                        pagerAdapter.notifyDataSetChanged();
+                        pager.setAdapter(pagerAdapter);
+                        adn.notifyDataSetChanged();
+                        pager.setCurrentItem(pos,true);
+                        break;
+                    case R.id.e2:
+                        if (pos == 0) break;
+                        Day d1 = db.getDay(id, pos - 1);
+                        Day d2 = db.getDay(id, pos);
+                        List<Activity> ActList1 = db.getAllActivities(d1.id);
+                        List<Activity> ActList2 = db.getAllActivities(d2.id);
+                        for (int i = 0; i < ActList1.size(); i++) {
+                            ActList1.get(i).fid = d2.id;
+                            db.updateActivity(ActList1.get(i));
+                        }
+                        for (int i = 0; i < ActList2.size(); i++) {
+                            ActList2.get(i).fid = d1.id;
+                            db.updateActivity(ActList2.get(i));
+                        }
+                        String st = d1.date;
+                        d1.date = d2.date;
+                        d2.date = st;
+                        st = d1.day;
+                        d1.day = d2.day;
+                        d2.day = st;
+                        int temp = d1.id;
+                        d1.id = d2.id;
+                        d2.id = temp;
+                        db.updateDay(d1);
+                        db.updateDay(d2);
+                        TripDayFragment F1 = (TripDayFragment) pagerAdapter.fragmentList.get(pos);
+                        F1.refresh();
+                        TripDayFragment F2 = (TripDayFragment) pagerAdapter.fragmentList.get(pos+1);
+                        F2.refresh();
+                        pager.setCurrentItem(pos, true);
+                        adn.notifyDataSetChanged();
+                        break;
+                    case R.id.e3:
+                        if (pos == adn.getItemCount() - 1) break;
+                        Day d3 = db.getDay(id, pos);
+                        Day d4 = db.getDay(id, pos + 1);
+                        List<Activity> ActList3 = db.getAllActivities(d3.id);
+                        List<Activity> ActList4 = db.getAllActivities(d4.id);
+                        for (int i = 0; i < ActList3.size(); i++) {
+                            ActList3.get(i).fid = d4.id;
+                            db.updateActivity(ActList3.get(i));
+                        }
+                        for (int i = 0; i < ActList4.size(); i++) {
+                            ActList4.get(i).fid = d3.id;
+                            db.updateActivity(ActList4.get(i));
+                        }
+                        String st2 = d3.date;
+                        d3.date = d4.date;
+                        d4.date = st2;
+                        st2 = d3.day;
+                        d3.day = d4.day;
+                        d4.day = st2;
+                        int temp2 = d3.id;
+                        d3.id = d4.id;
+                        d4.id = temp2;
+                        db.updateDay(d3);
+                        db.updateDay(d4);
+                        TripDayFragment F3 = (TripDayFragment) pagerAdapter.fragmentList.get(pos+1);
+                        F3.refresh();
+                        TripDayFragment F4 = (TripDayFragment) pagerAdapter.fragmentList.get(pos+2);
+                        F4.refresh();
+                        pager.setCurrentItem(pos+2, true);
+                        adn.notifyDataSetChanged();
+                        break;
+                }
+
+                return true;
+            }
+        });
+
+        popup.show();
+
     }
 
 }

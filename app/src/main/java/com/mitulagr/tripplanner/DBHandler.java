@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -26,6 +28,7 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String TABLE_Hotel = "TH";
     private static final String TABLE_Travel = "TTr";
     private static final String TABLE_Activity = "TA";
+    private static final String TABLE_Notes = "TN";
 
     // Table Trip - Columns
     private static final String TT_ID = "TT_id";
@@ -95,6 +98,11 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String TEx_amtd = "TEx_amtd";
     private static final String TEx_isHome = "TEx_isHome";
 
+    // Table Notes - Columns
+    private static final String TN_ID = "TN_id";
+    private static final String TN_FID = "TN_fid";
+    private static final String TN_title = "TN_title";
+    private static final String TN_des = "TN_des";
 
     DBHandler(Context context){
         super(context,DATABASE_NAME,null,1);
@@ -185,6 +193,14 @@ public class DBHandler extends SQLiteOpenHelper {
                 +TEx_isHome+" INTEGER,"
                 +"FOREIGN KEY ("+TEx_FID+") REFERENCES "+TABLE_Exp+" ("+TEx_ID+"))";
         db.execSQL(CREATE_TEx);
+
+        String CREATE_TN = "CREATE TABLE "+TABLE_Notes+"("
+                +TN_ID+" INTEGER PRIMARY KEY,"
+                +TN_FID+" INTEGER,"
+                +TN_title+" TEXT,"
+                +TN_des+" TEXT,"
+                +"FOREIGN KEY ("+TN_FID+") REFERENCES "+TABLE_Trip+" ("+TT_ID+"))";
+        db.execSQL(CREATE_TN);
     }
 
     @Override
@@ -196,6 +212,7 @@ public class DBHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS "+TABLE_Day);
         db.execSQL("DROP TABLE IF EXISTS "+TABLE_Activity);
         db.execSQL("DROP TABLE IF EXISTS "+TABLE_Exp);
+        db.execSQL("DROP TABLE IF EXISTS "+TABLE_Notes);
         onCreate(db);
     }
 
@@ -302,6 +319,19 @@ public class DBHandler extends SQLiteOpenHelper {
         return c.getCount();
     }
 
+    public int getTripsNewId(){
+        String selectQuery = "SELECT * FROM "+TABLE_Trip;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+        int nid = -1;
+        if (c!=null && c.moveToFirst()){
+            do {
+                nid = c.getInt(c.getColumnIndexOrThrow(TT_ID));
+            } while (c.moveToNext());
+        }
+        return nid+1;
+    }
+
     public int updateTrip(Trip trip){
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -327,15 +357,27 @@ public class DBHandler extends SQLiteOpenHelper {
 
     public void deleteTrip(Trip trip){
         SQLiteDatabase db = this.getWritableDatabase();
+        List<ExpCat> ExpCatList = getAllExpCats(trip.srno);
+        for(int i=0;i<ExpCatList.size();i++){
+            db.delete(TABLE_Exp, TEx_FID+"=?",new String[]{String.valueOf(ExpCatList.get(i).id)});
+        }
+        List<Day> DayList = getAllDays(trip.srno);
+        for(int i=0;i<DayList.size();i++){
+            db.delete(TABLE_Activity, TA_FID+"=?",new String[]{String.valueOf(DayList.get(i).id)});
+        }
+        db.delete(TABLE_ExpCat, TE_FID+"=?",new String[]{String.valueOf(trip.srno)});
+        db.delete(TABLE_Day, TD_FID+"=?",new String[]{String.valueOf(trip.srno)});
+        db.delete(TABLE_Hotel, TH_FID+"=?",new String[]{String.valueOf(trip.srno)});
+        db.delete(TABLE_Travel, TTr_FID+"=?",new String[]{String.valueOf(trip.srno)});
         db.delete(TABLE_Trip, TT_ID+"=?",new String[]{String.valueOf(trip.srno)});
         db.close();
     }
 
-    public void deleteTrip(int srno){
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_Trip, TT_ID+"=?",new String[]{String.valueOf(srno)});
-        db.close();
-    }
+//    public void deleteTrip(int srno){
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        db.delete(TABLE_Trip, TT_ID+"=?",new String[]{String.valueOf(srno)});
+//        db.close();
+//    }
 
 
     /*
@@ -459,6 +501,19 @@ public class DBHandler extends SQLiteOpenHelper {
         return c.getCount();
     }
 
+    public int getExpCatNewId(){
+            String selectQuery = "SELECT * FROM "+TABLE_ExpCat;
+            SQLiteDatabase db = this.getWritableDatabase();
+            Cursor c = db.rawQuery(selectQuery,null);
+            int nid = -1;
+            if (c!=null && c.moveToFirst()){
+                do {
+                    nid = c.getInt(c.getColumnIndexOrThrow(TE_ID));
+                } while (c.moveToNext());
+            }
+            return nid+1;
+    }
+
     public int updateExpCat(ExpCat expcat){
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -478,6 +533,14 @@ public class DBHandler extends SQLiteOpenHelper {
     //TODO: also delete related exps. For Level 2+ deletions confirmation dialog
     public void deleteExpCat(ExpCat expcat){
         SQLiteDatabase db = this.getWritableDatabase();
+        Trip trip = getTrip(expcat.fid);
+        trip.exp = trip.exp - expcat.Amt;
+        if(trip.isHom==0) {
+            trip.Dexp = trip.Dexp - expcat.DesAmt;
+            trip.Hexp = trip.Hexp - expcat.homAmt;
+        }
+        updateTrip(trip);
+        db.delete(TABLE_Exp, TEx_FID+"=?",new String[]{String.valueOf(expcat.id)});
         db.delete(TABLE_ExpCat, TE_ID+"=?",new String[]{String.valueOf(expcat.id)});
         db.close();
     }
@@ -577,6 +640,19 @@ public class DBHandler extends SQLiteOpenHelper {
         Cursor c = db.rawQuery(countQuery,null);
 
         return c.getCount();
+    }
+
+    public int getHotelNewId(){
+        String selectQuery = "SELECT * FROM "+TABLE_Hotel;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+        int nid = -1;
+        if (c!=null && c.moveToFirst()){
+            do {
+                nid = c.getInt(c.getColumnIndexOrThrow(TH_ID));
+            } while (c.moveToNext());
+        }
+        return nid+1;
     }
 
     public int updateHotel(Hotel hotel){
@@ -706,6 +782,19 @@ public class DBHandler extends SQLiteOpenHelper {
         return c.getCount();
     }
 
+    public int getTravelNewId(){
+        String selectQuery = "SELECT * FROM "+TABLE_Travel;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+        int nid = -1;
+        if (c!=null && c.moveToFirst()){
+            do {
+                nid = c.getInt(c.getColumnIndexOrThrow(TTr_ID));
+            } while (c.moveToNext());
+        }
+        return nid+1;
+    }
+
     public int updateTravel(Travel travel){
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -778,7 +867,6 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
     public void DayOnCreate(Trip trip){
-        int n = getDaysCount();
         int d = trip.nights+1;
         if(d>10) d=10;
         if(trip.depDate.equals(trip.retDate) && trip.depDate.length()<2) d=5;
@@ -789,7 +877,7 @@ public class DBHandler extends SQLiteOpenHelper {
             day.city = trip.place;
             day.date = getNextDate(trip.depDate,i);
             day.day = getCurDay(day.date);
-            day.id = n+i;
+            day.id = getDayNewId();
             addDay(day);
         }
     }
@@ -880,6 +968,19 @@ public class DBHandler extends SQLiteOpenHelper {
         return c.getCount();
     }
 
+    public int getDayNewId(){
+        String selectQuery = "SELECT * FROM "+TABLE_Day;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+        int nid = -1;
+        if (c!=null && c.moveToFirst()){
+            do {
+                nid = c.getInt(c.getColumnIndexOrThrow(TD_ID));
+            } while (c.moveToNext());
+        }
+        return nid+1;
+    }
+
     public int updateDay(Day day){
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -894,6 +995,8 @@ public class DBHandler extends SQLiteOpenHelper {
 
         return db.update(TABLE_Day,values,TD_ID+"=?",new String[]{String.valueOf(day.id)});
     }
+
+    //TODO: Delete Day
 
     public void deleteDay(Day day){
         SQLiteDatabase db = this.getWritableDatabase();
@@ -997,6 +1100,19 @@ public class DBHandler extends SQLiteOpenHelper {
         Cursor c = db.rawQuery(countQuery,null);
 
         return c.getCount();
+    }
+
+    public int getActivityNewId(){
+        String selectQuery = "SELECT * FROM "+TABLE_Activity;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+        int nid = -1;
+        if (c!=null && c.moveToFirst()){
+            do {
+                nid = c.getInt(c.getColumnIndexOrThrow(TA_ID));
+            } while (c.moveToNext());
+        }
+        return nid+1;
     }
 
     public int updateActivity(Activity act){
@@ -1125,6 +1241,19 @@ public class DBHandler extends SQLiteOpenHelper {
         return c.getCount();
     }
 
+    public int getExpNewId(){
+        String selectQuery = "SELECT * FROM "+TABLE_Exp;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+        int nid = -1;
+        if (c!=null && c.moveToFirst()){
+            do {
+                nid = c.getInt(c.getColumnIndexOrThrow(TEx_ID));
+            } while (c.moveToNext());
+        }
+        return nid+1;
+    }
+
     public int updateExp(Exp exp){
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -1142,6 +1271,16 @@ public class DBHandler extends SQLiteOpenHelper {
 
     public void deleteExp(Exp exp){
         SQLiteDatabase db = this.getWritableDatabase();
+        ExpCat expcat = getExpCat(exp.fid);
+        Trip trip = getTrip(expcat.fid);
+        expcat.Amt = expcat.Amt - exp.Amt;
+        if(exp.isHome==0) expcat.DesAmt = expcat.DesAmt - exp.AmtD;
+        else expcat.homAmt = expcat.homAmt - exp.Amt;
+        trip.exp = trip.exp - expcat.Amt;
+        trip.Hexp = trip.Hexp - expcat.homAmt;
+        trip.Dexp = trip.Dexp - expcat.DesAmt;
+        updateExpCat(expcat);
+        updateTrip(trip);
         db.delete(TABLE_Exp, TEx_ID+"=?",new String[]{String.valueOf(exp.id)});
         db.close();
     }
@@ -1149,6 +1288,120 @@ public class DBHandler extends SQLiteOpenHelper {
     public int getExpFid(int srno, int expcat){
         List<ExpCat> expCatList = getAllExpCats(srno);
         return expCatList.get(expcat).id;
+    }
+
+
+    /*
+    =============================================================================
+    Table Notes
+    =============================================================================
+     */
+
+    public void addNote(Note note){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TN_ID, note.id);
+        values.put(TN_FID, note.fid);
+        values.put(TN_title, note.title);
+        values.put(TN_des, note.desc);
+
+        db.insert(TABLE_Notes, null, values);
+        db.close();
+    }
+
+    public Note getNote(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor c = db.query(TABLE_Notes, new String[]{
+                        TN_ID,TN_FID,TN_title,TN_des},
+                TN_ID+"=?", new String[]{String.valueOf(id)},
+                null,null,null,null);
+
+        if (c!=null) c.moveToFirst();
+
+        Note note = new Note();
+
+        note.id = c.getInt(c.getColumnIndexOrThrow(TN_ID));
+        note.fid = c.getInt(c.getColumnIndexOrThrow(TN_FID));
+        note.title = c.getString(c.getColumnIndexOrThrow(TN_title));
+        note.desc = c.getString(c.getColumnIndexOrThrow(TN_des));
+
+        return note;
+    }
+
+    public List<Note> getAllNotes(int fid){
+        List<Note> noteList = new ArrayList<Note>();
+
+        String selectQuery = "SELECT * FROM "+TABLE_Notes
+                +" WHERE "+TN_FID+" = "+fid
+                +" ORDER BY "+TN_ID+" ASC";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+
+        if (c!=null && c.moveToFirst()){
+            do {
+                Note note = new Note();
+
+                note.id = c.getInt(c.getColumnIndexOrThrow(TN_ID));
+                note.fid = c.getInt(c.getColumnIndexOrThrow(TN_FID));
+                note.title = c.getString(c.getColumnIndexOrThrow(TN_title));
+                note.desc = c.getString(c.getColumnIndexOrThrow(TN_des));
+                noteList.add(note);
+            } while (c.moveToNext());
+        }
+
+        return noteList;
+    }
+
+    public int getNotesCount(int fid){
+        String countQuery = "SELECT * FROM "+TABLE_Notes+" WHERE "+TN_FID+" = "+fid;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int getNotesCount(){
+        String countQuery = "SELECT * FROM "+TABLE_Notes;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(countQuery,null);
+
+        return c.getCount();
+    }
+
+    public int getNoteNewId(){
+        String selectQuery = "SELECT * FROM "+TABLE_Notes;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor c = db.rawQuery(selectQuery,null);
+        int nid = -1;
+        if (c!=null && c.moveToFirst()){
+            do {
+                nid = c.getInt(c.getColumnIndexOrThrow(TN_ID));
+            } while (c.moveToNext());
+        }
+        return nid+1;
+    }
+
+    public int updateNote(Note note){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(TN_ID, note.id);
+        values.put(TN_FID, note.fid);
+        values.put(TN_title, note.title);
+        values.put(TN_des, note.desc);
+
+        return db.update(TABLE_Notes,values,TN_ID+"=?",new String[]{String.valueOf(note.id)});
+    }
+
+    public void deleteNote(Note note){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_Notes, TN_ID+"=?",new String[]{String.valueOf(note.id)});
+        db.close();
     }
 
 }
