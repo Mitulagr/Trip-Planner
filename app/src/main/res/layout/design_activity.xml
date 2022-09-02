@@ -20,27 +20,25 @@
         android:id="@+id/textView8"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
+        android:layout_marginStart="60dp"
         android:layout_marginTop="5dp"
-        android:layout_marginEnd="25dp"
-        android:text="TextView"
+        android:text=""
         android:textColor="#000000"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/imageView8"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView24"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginStart="65dp"
+        android:layout_marginTop="5dp"
         android:layout_marginEnd="25dp"
-        android:text="TextView TextView TextView TextViewText ViewTextViewTextViewT extViewTex tViewText ViewTextVie  w"
+        android:text=""
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/imageView8"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView8" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

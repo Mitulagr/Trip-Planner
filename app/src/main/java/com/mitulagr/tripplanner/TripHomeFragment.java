@@ -339,17 +339,14 @@ public class TripHomeFragment extends Fragment {
         }
         if(hotel.nights>0) HNights.setText(String.valueOf(hotel.nights));
 
+        AdView mAdHot = curd.findViewById(R.id.adHot);
         MobileAds.initialize(getActivity(), new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(@NonNull InitializationStatus initializationStatus) {
+                AdRequest adRequest = new AdRequest.Builder().build();
+                mAdHot.loadAd(adRequest);
             }
         });
-
-        AdView mAdHot = curd.findViewById(R.id.adHot);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdHot.loadAd(adRequest);
-
-        // TODO: if returned nights is 0 then show nothing
 
         Hdec.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -449,15 +446,14 @@ public class TripHomeFragment extends Fragment {
 
         // TODO: Set From City and Depart Date as previous arrival ones (after checking if they are filled)
 
+        AdView mAdHot = curd.findViewById(R.id.adTra);
         MobileAds.initialize(getActivity(), new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(@NonNull InitializationStatus initializationStatus) {
+                AdRequest adRequest = new AdRequest.Builder().build();
+                mAdHot.loadAd(adRequest);
             }
         });
-
-        AdView mAdHot = curd.findViewById(R.id.adTra);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdHot.loadAd(adRequest);
 
         tType.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -548,6 +544,7 @@ public class TripHomeFragment extends Fragment {
 
                 adt.localDataSet = db.getAllTravels(id);
                 adt.notifyDataSetChanged();
+                travels.setAdapter(adt);
                 travelHelpUpdate();
                 curd.dismiss();
             }
@@ -664,6 +661,7 @@ public class TripHomeFragment extends Fragment {
                         db.updateTravel(t2);
                         adt.localDataSet = db.getAllTravels(id);
                         adt.notifyDataSetChanged();
+                        travels.setAdapter(adt);
                         break;
                     case R.id.e4:
                         if(pos== adt.getItemCount()-1) break;
@@ -676,6 +674,7 @@ public class TripHomeFragment extends Fragment {
                         db.updateTravel(t4);
                         adt.localDataSet = db.getAllTravels(id);
                         adt.notifyDataSetChanged();
+                        travels.setAdapter(adt);
                         break;
                 }
 

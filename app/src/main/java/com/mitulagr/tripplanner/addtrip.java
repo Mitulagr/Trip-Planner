@@ -78,18 +78,14 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
 
     setupUI(findViewById(R.id.addtripparent));
 
+    mAdView = findViewById(R.id.adView);
     MobileAds.initialize(this, new OnInitializationCompleteListener() {
       @Override
       public void onInitializationComplete(@NonNull InitializationStatus initializationStatus) {
-
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
       }
     });
-
-    //TODO: Make trip with default trip and in exchange function update it if it works otherwise let default remain
-
-    mAdView = findViewById(R.id.adView);
-    AdRequest adRequest = new AdRequest.Builder().build();
-    mAdView.loadAd(adRequest);
 
     placename = (EditText) findViewById(R.id.placename);
     create = findViewById(R.id.create_trip);
@@ -295,10 +291,14 @@ public class addtrip extends AppCompatActivity implements DatePickerDialog.OnDat
         editor.putString("Home Currency", hom.getText().toString());
         editor.commit();
 
-        trip.depDate = dep.getText().toString();
-        trip.retDate = ret.getText().toString();
-        if(isNew) trip = new Trip(db.getTripsNewId(),placename.getText().toString(),getImg());
+        if(isNew){
+          trip = new Trip(db.getTripsNewId(),placename.getText().toString(),getImg());
+          trip.depDate = dep.getText().toString();
+          trip.retDate = ret.getText().toString();
+        }
         else {
+          trip.depDate = dep.getText().toString();
+          trip.retDate = ret.getText().toString();
           trip.place = placename.getText().toString();
           trip.imageId = getImg();
           List<Day> DList = db.getAllDays(trip.srno);

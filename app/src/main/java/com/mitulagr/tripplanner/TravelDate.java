@@ -2,6 +2,8 @@ package com.mitulagr.tripplanner;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -17,6 +19,9 @@ public class TravelDate implements DatePickerDialog.OnDateSetListener{
     boolean isDep;
     int[] depret = new int[6];
 
+    private DBHandler db;
+    private Trip trip;
+
     TravelDate(Button dep, Button arr, Context context, TextView depR, TextView arrR){
 
         this.context = context;
@@ -25,6 +30,15 @@ public class TravelDate implements DatePickerDialog.OnDateSetListener{
 
         depret[0] = 0;
         depret[1] = 0;
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+        db = new DBHandler(context);
+        trip = db.getTrip(sp.getInt("Current Trip", 0));
+        if(trip.depDate.length()>1){
+            depret[0] = Integer.parseInt(trip.depDate.substring(0,2));
+            depret[2] = Integer.parseInt(trip.depDate.substring(3,5));
+            depret[4] = Integer.parseInt(trip.depDate.substring(6));
+        }
 
         dep.setOnClickListener(new View.OnClickListener() {
             @Override

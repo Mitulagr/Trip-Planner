@@ -180,6 +180,7 @@ public class NotesFragment extends Fragment {
 
                 adn.localDataSet = db.getAllNotes(id);
                 adn.notifyDataSetChanged();
+                //notes.setAdapter(adn);
                 curd.dismiss();
             }
         });
@@ -216,6 +217,7 @@ public class NotesFragment extends Fragment {
                         db.updateNote(n2);
                         adn.localDataSet = db.getAllNotes(id);
                         adn.notifyDataSetChanged();
+                        //notes.setAdapter(adn);
                         break;
                     case R.id.e4:
                         if(pos== adn.getItemCount()-1) break;
@@ -228,6 +230,7 @@ public class NotesFragment extends Fragment {
                         db.updateNote(n4);
                         adn.localDataSet = db.getAllNotes(id);
                         adn.notifyDataSetChanged();
+                        //notes.setAdapter(adn);
                         break;
                 }
 

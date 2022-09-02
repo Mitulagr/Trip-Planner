@@ -10,6 +10,7 @@ import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -77,9 +78,15 @@ public class Adapter_Notes extends RecyclerView.Adapter<Adapter_Notes.ViewHolder
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, @SuppressLint("RecyclerView") final int position) {
         Note note = localDataSet.get(position);
-        if(note.title!="") viewHolder.title.setText(note.title);
+        if(note.title.length()>0) {
+            viewHolder.title.setVisibility(View.VISIBLE);
+            viewHolder.title.setText(note.title);
+        }
         else viewHolder.title.setVisibility(View.GONE);
-        if(note.desc!="") viewHolder.desc.setText(note.desc);
+        if(note.desc.length()>0) {
+            viewHolder.desc.setVisibility(View.VISIBLE);
+            viewHolder.desc.setText(note.desc);
+        }
         else viewHolder.desc.setVisibility(View.GONE);
     }
 

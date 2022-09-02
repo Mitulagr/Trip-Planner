@@ -156,7 +156,7 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, @SuppressLint("RecyclerView") final int position) {
-        viewHolder.CatName.setText("  "+localDataSet.get(position).category);
+        viewHolder.CatName.setText(localDataSet.get(position).category);
         viewHolder.CatName.setCompoundDrawablesWithIntrinsicBounds(context.getDrawable(localDataSet.get(position).imageId),null,null,null);
         viewHolder.CatExpense.setText(trip.Hcur.substring(6)+" "+getAmt(localDataSet.get(position).Amt));
 
@@ -224,9 +224,9 @@ public class Adapter_ExpenseMain extends RecyclerView.Adapter<Adapter_ExpenseMai
         if(amt<0.005f) return "0";
         String a;
         a = String.format("%.0f", amt);
-        if(Float.parseFloat(a)==amt || amt>1000.0f) return a;
+        if(Math.abs(Float.parseFloat(a)-amt)<0.01f || amt>1000.0f) return a;
         a = String.format("%.1f", amt);
-        if(Float.parseFloat(a)==amt || amt>100.0f) return a;
+        if(Math.abs(Float.parseFloat(a)-amt)<0.01f || amt>100.0f) return a;
         return String.format("%.2f", amt);
     }
 

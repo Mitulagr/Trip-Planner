@@ -400,7 +400,7 @@ public class DBHandler extends SQLiteOpenHelper {
         String ic[] = {"Travel","Visa","Hotel","Food","Transport","Activities","Shopping","Other"};
         for(int i=0; i<8; i++){
             ExpCat expcat = new ExpCat(ic[i],im[i]);
-            expcat.id = n+i;
+            expcat.id = getExpCatNewId();
             expcat.fid = fid;
             addExpCat(expcat);
         }

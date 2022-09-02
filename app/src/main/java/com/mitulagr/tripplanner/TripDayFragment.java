@@ -18,6 +18,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -61,6 +63,10 @@ public class TripDayFragment extends Fragment {
         if (getArguments() != null) {
             day = getArguments().getInt(DAY);
         }
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
+        id = sp.getInt("Current Trip", 0);
+        db = new DBHandler(getContext());
+        //created = true;
     }
 
     private TextView placeName, dayDate, dayDay, description, activityHelp;
@@ -69,9 +75,10 @@ public class TripDayFragment extends Fragment {
     private Button addActivity;
 
     private int id;
-    private DBHandler db;
+    DBHandler db;
     private Adapter_Activity ada;
     Day d;
+    //boolean created = false;
 
     public void refresh(){
         d =  db.getDay(id,day-1);
@@ -88,7 +95,6 @@ public class TripDayFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_trip_day, container, false);
-
         placeName = (TextView) rootView.findViewById(R.id.textView35);
         dayDate = (TextView) rootView.findViewById(R.id.textView36);
         dayDay = (TextView) rootView.findViewById(R.id.textView37);
@@ -100,10 +106,6 @@ public class TripDayFragment extends Fragment {
         activities = (RecyclerView) rootView.findViewById(R.id.activities);
 
         addActivity = (Button) rootView.findViewById(R.id.addActivity);
-
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getContext());
-        id = sp.getInt("Current Trip", 0);
-        db = new DBHandler(getContext());
 
         d = db.getDay(id,day-1);
         placeName.setText(d.city);
@@ -263,8 +265,8 @@ public class TripDayFragment extends Fragment {
             ADesc.setText(act.desc);
             for(int i=0;i<4;i++) {
                 if(phaseImgs[i]==act.img){
-                    Ap[i].setBackgroundColor(Color.parseColor("#8FE8E0"));
                     Ap[phase[0]].setBackgroundColor(Color.parseColor("#EFEFEF"));
+                    Ap[i].setBackgroundColor(Color.parseColor("#8FE8E0"));
                     phase[0] = i;
                 }
             }

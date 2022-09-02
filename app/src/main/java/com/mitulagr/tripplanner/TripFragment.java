@@ -151,6 +151,7 @@ public class TripFragment extends Fragment {
         adn.setOnItemLongClickListener(new Adapter_TripNav.LongClickListener() {
             @Override
             public void onItemLongClickListener(View view, int position) {
+                pager.setCurrentItem(position+1, true);
                 showEdit(view,position);
             }
         });
@@ -205,14 +206,12 @@ public class TripFragment extends Fragment {
                 day.fid = id;
                 day.id = db.getDayNewId();
                 db.addDay(day);
-                fragmentList.add(TripDayFragment.newInstance(days+1));
-                pagerAdapter.fragmentList = fragmentList;
-                pagerAdapter.notifyDataSetChanged();
-                adn.n++;
-                onDayClick(days);
-                adn.selected = days;
-                pager.setCurrentItem(days+1,true);
                 days++;
+                adn.n = days;
+                pagerAdapter.fragmentList.add(TripDayFragment.newInstance(days));
+                pagerAdapter.notifyDataSetChanged();
+                pager.setAdapter(pagerAdapter);
+                pager.setCurrentItem(days,true);
                 adn.notifyDataSetChanged();
             }
         });
@@ -314,8 +313,8 @@ public class TripFragment extends Fragment {
                         List<Activity> AList = db.getAllActivities(Dpos.id);
                         db.deleteDay(Dpos);
                         for(int i=0;i<AList.size();i++) db.deleteActivity(AList.get(i));
-                        adn.n--;
                         days--;
+                        adn.n = days;
                         List<Day> DList= db.getAllDays(id);
                         for(int i = DList.size()-1;i>pos;i--){
                             DList.get(i).date = DList.get(i-1).date;
@@ -364,9 +363,9 @@ public class TripFragment extends Fragment {
                         db.updateDay(d1);
                         db.updateDay(d2);
                         TripDayFragment F1 = (TripDayFragment) pagerAdapter.fragmentList.get(pos);
-                        F1.refresh();
+                        if(F1.db!=null) F1.refresh();
                         TripDayFragment F2 = (TripDayFragment) pagerAdapter.fragmentList.get(pos+1);
-                        F2.refresh();
+                        if(F2.db!=null) F2.refresh();
                         pager.setCurrentItem(pos, true);
                         adn.notifyDataSetChanged();
                         break;
@@ -396,9 +395,9 @@ public class TripFragment extends Fragment {
                         db.updateDay(d3);
                         db.updateDay(d4);
                         TripDayFragment F3 = (TripDayFragment) pagerAdapter.fragmentList.get(pos+1);
-                        F3.refresh();
+                        if(F3.db!=null) F3.refresh();
                         TripDayFragment F4 = (TripDayFragment) pagerAdapter.fragmentList.get(pos+2);
-                        F4.refresh();
+                        if(F4.db!=null) F4.refresh();
                         pager.setCurrentItem(pos+2, true);
                         adn.notifyDataSetChanged();
                         break;

@@ -1,5 +1,9 @@
 package com.mitulagr.tripplanner;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -54,16 +58,29 @@ public class MainActivity extends AppCompatActivity {
         if(db.getTripsCount()>0) findViewById(R.id.textView25).setVisibility(View.GONE);
         else findViewById(R.id.textView25).setVisibility(View.VISIBLE);
 
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+
+        ActivityResultLauncher<Intent> startActivityForResult = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        adt.localDataSet = db.getAllTrips();
+                        adt.filter(sp.getInt("Sort", 2));
+                        adt.notifyDataSetChanged();
+                    }
+                });
+
         //TODO: open last opened automatically 2. if deleted
         //TODO: latest trip at top instead of end + sort logic (save sort preference)
         //TODO: prevent memory leak when screen rotate while adding anything like activity
         //TODO: In adding new travel default from name = prev to name and other such things like in day
 
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         int id = sp.getInt("Current Trip", -1);
         if(id!=-1){
             Intent intent = new Intent(MainActivity.this, PageMain.class);
-            startActivity(intent);
+            //startActivity(intent);
+            startActivityForResult.launch(intent);
         }
 
 
@@ -108,7 +125,8 @@ public class MainActivity extends AppCompatActivity {
                 editor.putInt("Current Trip", adt.localDataSet.get(position).srno);
                 editor.commit();
                 Intent intent = new Intent(MainActivity.this, PageMain.class);
-                startActivity(intent);
+                //startActivity(intent);
+                startActivityForResult.launch(intent);
             }
 
             @Override

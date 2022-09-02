@@ -78,9 +78,15 @@ public class Adapter_Activity extends RecyclerView.Adapter<Adapter_Activity.View
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
         Activity act = localDataSet.get(position);
-        if(act.title!="") viewHolder.title.setText(act.title);
+        if(act.title.length()>0) {
+            viewHolder.title.setVisibility(View.VISIBLE);
+            viewHolder.title.setText(act.title);
+        }
         else viewHolder.title.setVisibility(View.GONE);
-        if(act.desc!="") viewHolder.desc.setText(act.desc);
+        if(act.desc.length()>0) {
+            viewHolder.desc.setVisibility(View.VISIBLE);
+            viewHolder.desc.setText(act.desc);
+        }
         else viewHolder.desc.setVisibility(View.GONE);
         viewHolder.img.setImageResource(act.img);
     }

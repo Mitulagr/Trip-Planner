@@ -253,6 +253,8 @@ public class ExpActivity extends AppCompatActivity {
 
                     case R.id.e1:
                         Exp exp = db.getExp(id,expcat,pos);
+                        expCat = db.getExpCat(id,expcat);
+                        trip = db.getTrip(id);
                         expCat.Amt = expCat.Amt - exp.Amt;
                         trip.exp = trip.exp - exp.Amt;
                         if(exp.isHome==0){

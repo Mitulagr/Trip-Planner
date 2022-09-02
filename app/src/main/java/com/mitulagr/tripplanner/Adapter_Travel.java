@@ -91,10 +91,18 @@ public class Adapter_Travel extends RecyclerView.Adapter<Adapter_Travel.ViewHold
             viewHolder.fromDate.setVisibility(View.GONE);
             viewHolder.toDate.setVisibility(View.GONE);
         }
+        else{
+            viewHolder.fromDate.setVisibility(View.VISIBLE);
+            viewHolder.toDate.setVisibility(View.VISIBLE);
+        }
 
         if(localDataSet.get(position).from_time.length()==0 && localDataSet.get(position).to_time.length()==0){
             viewHolder.fromTime.setVisibility(View.GONE);
             viewHolder.toTime.setVisibility(View.GONE);
+        }
+        else{
+            viewHolder.fromTime.setVisibility(View.VISIBLE);
+            viewHolder.toTime.setVisibility(View.VISIBLE);
         }
 
         if(dateNow.equals(localDataSet.get(position).from_date)) {
